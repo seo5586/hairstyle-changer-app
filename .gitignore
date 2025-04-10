@@ -1,0 +1,25 @@
+# Python
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+backend/.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files (Optional)
+.vscode/
+
+# Temporary Uploads (if applicable)
+backend/uploads/
+
+# Migrations (Optional, but often included)
+# If you prefer not to track specific migration versions:
+# backend/migrations/versions/*

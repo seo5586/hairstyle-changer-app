@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>얼굴형 분석 및 헤어스타일 추천</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* 이 페이지에만 필요한 추가 스타일 (선택사항) */
+        .result-section ul {
+            list-style: disc;
+            margin-left: 20px;
+        }
+        .result-section li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">헤어스타일 변환</a></li>
+                <li><a href="analyzer.html" class="active">얼굴형 분석 & 추천</a></li>
+                <li><a href="search.html">헤어스타일 검색</a></li> 
+                <li><a href="map.html">주변 미용실 검색</a></li>
+            </ul>
+        </nav>
+    </header>
+    <hr style="margin-bottom: 30px;"> <h1>얼굴형 분석 & 헤어스타일 추천</h1>
+    
+    <div class="container">
+        <div class="upload-section">
+            <h2>1. 분석할 얼굴 사진 업로드</h2>
+            <p>얼굴이 정면으로 선명하게 나온 사진을 사용해주세요.<br> (JPG, PNG, BMP, 5MB 이하, 2000x2000px 이하)</p>
+            <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/jpg, image/bmp">
+            <img id="imagePreview" src="#" alt="업로드 이미지 미리보기" style="display: none; max-width: 300px; margin-top: 10px;">
+        </div>
+
+        <button id="analyzeButton">측정하기</button>
+
+        <div id="statusMessage" class="status"></div>
+
+        <div id="resultArea" class="result-section" style="display: none;">
+            <h2>분석 결과</h2>
+            <p><strong>감지된 성별:</strong> <span id="genderResult"></span></p>
+            <p><strong>나의 얼굴형:</strong> <span id="faceShapeResult"></span></p>
+            <h3>추천 헤어스타일:</h3>
+            <ul id="recommendationsList">
+                </ul>
+            <h3>추천 이유:</h3>
+            <p id="recommendationReason"></p>
+        </div>
+    </div>
+
+    <script src="analyzer_script.js"></script>
+</body>
+</html>

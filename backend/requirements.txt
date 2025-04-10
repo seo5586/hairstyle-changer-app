@@ -1,0 +1,8 @@
+Flask
+requests
+python-dotenv  # .env 파일을 사용하기 위해
+Flask-Cors     # 개발 중 CORS 문제 해결
+Flask-SQLAlchemy
+psycopg2-binary
+Flask-Migrate
+Pillow         # 이미지 해상도 확인용

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>헤어스타일 변환 서비스</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html" class="active">헤어스타일 변환</a></li>
+                <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
+                <li><a href="search.html">헤어스타일 검색</a></li> 
+                <li><a href="map.html">주변 미용실 검색</a></li>
+            </ul>
+        </nav>
+    </header>
+    <hr style="margin-bottom: 30px;"> <h1>헤어스타일 변환</h1>
+
+    <div class="container">
+        <div class="upload-section">
+            <h2>1. 사진 업로드</h2>
+            <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/jpg">
+            <img id="imagePreview" src="#" alt="업로드 이미지 미리보기" style="display: none; max-width: 300px; margin-top: 10px;">
+        </div>
+
+        <div class="options-section">
+            <h2>2. 헤어스타일 선택</h2>
+            <select id="hairStyleSelect">
+                <option value="">-- 스타일 선택 --</option>
+                <optgroup label="남자 헤어스타일">
+                    <option value="BuzzCut">버즈컷 (반삭)</option>
+                    <option value="UnderCut">언더컷</option>
+                    <option value="Pompadour">퐁파두르</option>
+                    <option value="SlickBack">슬릭백</option>
+                    <option value="CurlyShag">컬리 샤기컷</option>
+                    <option value="WavyShag">웨이비 샤기컷</option>
+                    <option value="FauxHawk">포호크</option>
+                    <option value="Spiky">스파이키</option>
+                    <option value="CombOver">콤오버 (가르마)</option>
+                    <option value="HighTightFade">하이 타이트 페이드</option>
+                    <option value="ManBun">맨번 (남자 묶음머리)</option>
+                    <option value="Afro">아프로</option>
+                    <option value="LowFade">로우 페이드</option>
+                    <option value="UndercutLongHair">언더컷 롱헤어</option>
+                    <option value="TwoBlockHaircut">투블럭컷</option>
+                    <option value="TexturedFringe">텍스처드 프린지 (질감 앞머리)</option>
+                    <option value="BluntBowlCut">블런트 보울컷 (바가지머리)</option>
+                    <option value="LongWavyCurtainBangs">롱 웨이비 커튼뱅</option>
+                    <option value="MessyTousled">메시 터슬드 (헝클어진 스타일)</option>
+                    <option value="CornrowBraids">콘로우 브레이드</option>
+                    <option value="LongHairTiedUp">긴 머리 묶음</option>
+                    <option value="Middle-parted">가운데 가르마</option>
+                </optgroup>
+                <optgroup label="여자 헤어스타일">
+                    <option value="ShortPixieWithShavedSides">숏 픽시 (사이드 쉐이브)</option>
+                    <option value="ShortNeatBob">짧은 단발</option>
+                    <option value="DoubleBun">더블 번 (양갈래 만두머리)</option>
+                    <option value="Updo">업두 (올림머리)</option>
+                    <option value="Spiked">스파이크 스타일</option>
+                    <option value="bowlCut">보울컷 (바가지머리)</option>
+                    <option value="Chignon">시뇽 (쪽머리)</option>
+                    <option value="PixieCut">픽시컷</option>
+                    <option value="SlickedBack">슬릭백</option>
+                    <option value="LongCurly">긴 곱슬머리</option>
+                    <option value="CurlyBob">곱슬 단발</option>
+                    <option value="StackedCurlsInShortBob">스택 컬 숏 밥</option>
+                    <option value="SidePartCombOverHairstyleWithHighFade">사이드 파트 콤오버 (하이 페이드)</option>
+                    <option value="WavyFrenchBobVibesfrom1920">웨이비 프렌치 밥 (1920년대)</option>
+                    <option value="BobCut">단발컷</option>
+                    <option value="ShortTwintails">짧은 양갈래</option>
+                    <option value="ShortCurlyPixie">짧은 곱슬 픽시컷</option>
+                    <option value="LongStraight">긴 생머리</option>
+                    <option value="LongWavy">긴 웨이브</option>
+                    <option value="FishtailBraid">피쉬테일 브레이드</option>
+                    <option value="TwinBraids">양갈래 땋기</option>
+                    <option value="Ponytail">포니테일</option>
+                    <option value="Dreadlocks">드레드락</option>
+                    <option value="Cornrows">콘로우</option>
+                    <option value="ShoulderLengthHair">어깨 길이 머리</option>
+                    <option value="LooseCurlyAfro">루즈 컬리 아프로</option>
+                    <option value="LongTwintails">긴 양갈래</option>
+                    <option value="LongHimeCut">긴 히메컷</option>
+                    <option value="BoxBraids">박스 브레이드</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="options-section">
+            <h2>3. 헤어 컬러 선택</h2>
+            <select id="hairColorSelect">
+                <option value="">-- 컬러 선택 (기본값: 원본 유지) --</option>
+                <option value="blonde">금발</option>
+                <option value="platinumBlonde">백금발</option>
+                <option value="brown">갈색</option>
+                <option value="lightBrown">밝은 갈색</option>
+                <option value="blue">파란색</option>
+                <option value="lightBlue">하늘색</option>
+                <option value="purple">보라색</option>
+                <option value="lightPurple">연보라색</option>
+                <option value="pink">분홍색</option>
+                <option value="black">검정색</option>
+                <option value="white">흰색</option>
+                <option value="grey">회색</option>
+                <option value="silver">은색</option>
+                <option value="red">빨간색</option>
+                <option value="orange">주황색</option>
+                <option value="green">녹색</option>
+                <option value="gradient">그라데이션</option>
+                <option value="multicolored">멀티컬러</option>
+                <option value="darkBlue">남색</option>
+                <option value="burgundy">버건디</option>
+                <option value="darkGreen">짙은 녹색</option>
+            </select>
+        </div>
+        <button id="transformButton">변환하기</button>
+
+        <div id="statusMessage" class="status"></div>
+
+        <div class="result-section">
+            <h2>변환 결과</h2>
+            <img id="resultImage" src="#" alt="변환 결과 이미지" style="display: none; max-width: 400px; margin-top: 10px;">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

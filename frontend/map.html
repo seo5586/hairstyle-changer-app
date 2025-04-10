@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주변 미용실 검색</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* 지도 표시 영역 스타일 */
+        #map {
+            height: 600px; /* 원래 지도의 높이 */
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">헤어스타일 변환</a></li>
+                <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
+                <li><a href="search.html">헤어스타일 검색</a></li>
+                <li><a href="map.html" class="active">주변 미용실 검색</a></li>
+            </ul>
+        </nav>
+    </header>
+    <hr style="margin-bottom: 30px;">
+    <h1>주변 미용실 검색</h1>
+
+    <div class="container">
+        <div id="statusMessage" class="status">지도 및 위치 정보를 불러오는 중...</div>
+        <div id="map"></div>
+
+        </div>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDu1a4yhDQt2CE9CZlNT7IRT2nlvXl9lg0&callback=initMap&libraries=places&language=ko">
+    </script>
+
+    <script src="map_script.js"></script>
+</body>
+</html>
