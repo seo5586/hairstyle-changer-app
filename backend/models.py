@@ -10,6 +10,8 @@ class Hairstyle(db.Model):
     description = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
     similar_styles_description = db.Column(db.Text, nullable=True)
+    brand_price = db.Column(db.Integer, nullable=True)
+    normal_price = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f'<Hairstyle {self.id}: {self.name}>'

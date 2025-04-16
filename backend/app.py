@@ -9,6 +9,8 @@ from PIL import Image # Pillow 라이브러리 import
 import io # 이미지 데이터를 메모리에서 다루기 위해 import
 # === extensions.py 에서 db, migrate 가져오기 ===
 from extensions import db, migrate
+from models import Hairstyle
+from sqlalchemy import func
 
 
 load_dotenv() # .env 파일 로드
@@ -44,73 +46,67 @@ TASK_RESULT_URL = "https://www.ailabapi.com/api/common/query-async-task-result"
 # === 새로운 API 엔드포인트 정의 ===
 FACE_ANALYZER_URL = "https://www.ailabapi.com/api/portrait/analysis/face-analyzer"
 
-# === 얼굴형별 추천 정보 (DB 시뮬레이션) ===
-# API 응답값 (0~4)을 키로 사용
+# === 얼굴형/성별 기반 추천 정보 (실제 헤어스타일 목록 연동) ===
+# styles 리스트에는 hairstyle_name_map의 key (API value)를 사용
 recommendations_db = {
-    0: { # 0: Square face (각진형)
-        "name_kr": "각진형",
-        0: { # Male
-            "styles": ["투블럭 댄디컷 (윗머리 볼륨)", "가르마 펌", "리젠트 컷"],
-            "reason": "윗머리 볼륨으로 시선을 위로 분산시키고, 부드러운 컬이나 옆머리 라인으로 각진 턱선을 완화하여 부드러운 인상을 줍니다."
+    0: { # 각진형
+        0: { # 남성
+            "styles": ["TwoBlockHaircut", "Pompadour", "CombOver", "MessyTousled"],
+            "reason": "옆머리는 깔끔하게 정리하고 윗머리에 볼륨을 주거나, 자연스럽게 헝클어진 스타일로 시선을 분산시켜 각진 턱선을 부드럽게 보완할 수 있습니다."
         },
-        1: { # Female
-            "styles": ["레이어드 C컬/S컬 펌", "사이드뱅", "긴 웨이브 헤어", "볼륨있는 롱헤어"],
-            "reason": "얼굴 옆선을 따라 흐르는 부드러운 컬이나 레이어가 각진 턱 부분을 자연스럽게 커버하고 시선을 분산시켜 여성스러운 느낌을 강조합니다."
+        1: { # 여성
+            "styles": ["LongWavy", "ShoulderLengthHair", "BobCut", "LongHimeCut"], # 히메컷은 옆선을 가려줌
+            "reason": "얼굴 옆선을 부드럽게 감싸는 웨이브나 레이어드 스타일, 또는 턱선 주변에 볼륨감을 주는 단발/중단발 기장이 각진 부분을 커버하고 여성스러운 느낌을 줍니다."
         }
     },
-    1: { # 1: Triangular face (삼각형)
-        "name_kr": "삼각형",
-        0: { # Male
-            "styles": ["쉐도우 펌", "볼륨 펌", "앞머리 있는 스타일", "스왈로 펌"],
-            "reason": "윗머리와 옆머리 윗부분에 볼륨을 주어 상대적으로 좁은 이마와 관자놀이 부분을 보완하고, 아래로 갈수록 넓어지는 얼굴형의 균형을 맞춥니다."
+    1: { # 삼각형
+        0: { # 남성
+            "styles": ["Spiky", "TexturedFringe", "LowFade", "FauxHawk"], # 윗머리 볼륨 강조
+            "reason": "이마가 좁고 턱이 발달한 얼굴형에는 윗머리에 볼륨과 질감을 살린 스타일이 잘 어울립니다. 시선을 위로 끌어올려 얼굴 전체의 균형을 맞춰줍니다."
         },
-        1: { # Female
-            "styles": ["레이어드 컷 (턱선 위주)", "중단발 C컬/S컬펌", "볼륨있는 숏컷/단발"],
-            "reason": "윗부분에 볼륨감을 주고 턱선으로 갈수록 가벼워지는 스타일이 좋습니다. 광대나 턱으로 가는 시선을 분산시켜 부드러운 인상을 줍니다."
+        1: { # 여성
+            "styles": ["PixieCut", "ShortNeatBob", "CurlyBob", "Updo"], # 윗부분/옆부분 볼륨
+            "reason": "윗머리와 옆머리 윗부분에 볼륨을 주어 좁은 이마를 보완하고, 턱선으로 갈수록 가벼워지는 스타일이 좋습니다. 얼굴 위쪽에 시선을 집중시켜 균형을 맞춥니다."
         }
     },
-    2: { # 2: Oval face (타원형)
-        "name_kr": "타원형 (계란형)",
-        0: { # Male
-            "styles": ["댄디컷", "포마드", "크롭컷", "가르마 스타일", "장발 등 대부분 가능"],
-            "reason": "균형 잡힌 이상적인 얼굴형으로 대부분의 헤어스타일이 잘 어울립니다. 개인의 개성, 모질, 원하는 분위기에 맞춰 자유롭게 선택할 수 있습니다."
+    2: { # 타원형 (계란형)
+        0: { # 남성
+            "styles": ["SlickBack", "UnderCut", "Middle-parted", "ManBun"], # 다양한 스타일 가능
+            "reason": "축복받은 얼굴형! 대부분의 헤어스타일이 잘 어울립니다. 원하는 분위기나 개성에 맞춰 자유롭게 시도해보세요. 깔끔하거나 개성있는 스타일 모두 좋습니다."
         },
-        1: { # Female
-            "styles": ["숏컷", "단발", "긴 생머리", "웨이브", "앞머리 유무 등 대부분 가능"],
-            "reason": "얼굴형의 장점을 살리는 거의 모든 스타일이 잘 어울립니다. 얼굴형 자체의 균형이 좋아 다양한 스타일 변화를 시도하기 좋습니다."
+        1: { # 여성
+            "styles": ["LongStraight", "Ponytail", "BobCut", "ShortTwintails"], # 다양한 스타일 가능
+            "reason": "이상적인 얼굴형으로, 어떤 헤어스타일을 해도 예쁘게 소화할 수 있습니다. 긴 생머리부터 짧은 머리, 묶음 머리까지 다양하게 연출해보세요."
         }
     },
-    3: { # 3: Heart-shaped face (하트형)
-        "name_kr": "하트형 (역삼각형)",
-        0: { # Male
-            "styles": ["댄디컷", "가르마 스타일 (볼륨감 있게)", "리프컷", "옆머리 다운펌"],
-            "reason": "좁은 턱선을 보완하기 위해 옆머리와 뒷머리에 어느 정도 볼륨감을 주거나 구레나룻을 살리는 스타일이 좋습니다. 윗머리 볼륨은 과하지 않게 연출합니다."
+    3: { # 하트형 (역삼각형)
+        0: { # 남성
+            "styles": ["UndercutLongHair", "MessyTousled", "ManBun", "TexturedFringe"], # 아래쪽 볼륨, 부드러움
+            "reason": "넓은 이마와 좁은 턱선을 보완하기 위해 옆머리나 목덜미 부분에 볼륨감을 주거나, 부드러운 질감의 스타일이 좋습니다. 구레나룻을 살리는 것도 도움이 됩니다."
         },
-        1: { # Female
-            "styles": ["턱선 기장의 단발 C컬/S컬 펌", "중단발 레이어드 컷", "사이드뱅"],
-            "reason": "턱선 부근에 볼륨감이나 컬을 주어 좁은 하관을 보완하고 균형을 맞춥니다. 넓은 이마는 사이드뱅이나 시스루뱅으로 자연스럽게 커버할 수 있습니다."
+        1: { # 여성
+            "styles": ["BobCut", "ShoulderLengthHair", "LongWavy", "Chignon"], # 턱선 부근 볼륨
+            "reason": "턱선 부근에 볼륨감이나 C컬, S컬을 넣어 좁은 하관을 보완하는 것이 중요합니다. 앞머리(사이드뱅, 시스루뱅 등)로 넓은 이마를 자연스럽게 커버할 수 있습니다."
         }
     },
-    4: { # 4: Round face (둥근형)
-        "name_kr": "둥근형",
-        0: { # Male
-            "styles": ["리젠트 컷", "포마드", "투블럭 (윗머리 길게)", "비대칭 컷"],
-            "reason": "윗머리에 높이와 볼륨을 주어 얼굴의 세로 길이를 강조하고, 옆머리를 짧게 하여 얼굴이 시각적으로 갸름해 보이도록 합니다. 각진 느낌을 살리는 것이 좋습니다."
+    4: { # 둥근형
+        0: { # 남성
+            "styles": ["FauxHawk", "HighTightFade", "Spiky", "Pompadour"], # 세로 길이 강조
+            "reason": "얼굴의 세로 길이를 강조하는 것이 중요합니다. 윗머리에 높이와 볼륨을 주고 옆머리는 짧게 눌러주어 얼굴이 갸름해 보이도록 연출하는 것이 좋습니다."
         },
-        1: { # Female
-            "styles": ["레이어드 롱헤어", "애쉬메트릭 밥(비대칭 단발)", "사이드뱅/시스루뱅"],
-            "reason": "얼굴의 세로 길이를 강조하는 스타일이 좋습니다. 정수리 볼륨을 살리고, 얼굴 옆선을 커버하는 레이어나 옆으로 넘기는 앞머리가 둥근 느낌을 완화하고 갸름해 보이게 합니다."
+        1: { # 여성
+            "styles": ["LongStraight", "Updo", "Ponytail", "PixieCut"], # 세로선 강조, 옆 볼륨 자제
+            "reason": "정수리 볼륨을 살려 얼굴의 세로 길이를 늘려주고, 얼굴 옆선을 따라 자연스럽게 떨어지거나 옆으로 넘기는 스타일이 둥근 느낌을 완화해줍니다. 옆 볼륨은 최소화하는 것이 좋습니다."
         }
     },
-    "unknown": { # 얼굴형 분석 실패 또는 알 수 없는 경우
-        "name_kr": "알 수 없음",
-        0: { # Male Default
-            "styles": ["기본 스타일을 참고하세요."],
-            "reason": "얼굴형/성별 분석에 실패했거나 해당 정보가 없습니다."
+    "unknown": { # 알 수 없음
+        0: { # 남성
+            "styles": ["TwoBlockHaircut", "UnderCut", "SlickBack"], # 기본/무난 스타일
+            "reason": "얼굴형 분석에 실패했습니다. 기본적으로 많은 사람들에게 잘 어울리는 스타일을 참고해보세요."
         },
-        1: { # Female Default
-            "styles": ["기본 스타일을 참고하세요."],
-            "reason": "얼굴형/성별 분석에 실패했거나 해당 정보가 없습니다."
+        1: { # 여성
+            "styles": ["LongStraight", "BobCut", "Ponytail"], # 기본/무난 스타일
+            "reason": "얼굴형 분석에 실패했습니다. 기본적으로 많은 사람들에게 잘 어울리는 스타일을 참고해보세요."
         }
     }
 }
@@ -153,6 +149,7 @@ def check_image_resolution(image_stream):
 # === 얼굴 분석 API 라우트 수정 ===
 @app.route('/api/analyze-face', methods=['POST'])
 def analyze_face():
+
     # ... (파일 수신 및 기본 유효성 검사는 이전과 동일) ...
     if 'image' not in request.files: return jsonify({"error": "이미지 파일이 없습니다."}), 400
     image_file = request.files['image']
@@ -211,15 +208,55 @@ def analyze_face():
         face_shape_data = recommendations_db.get(face_shape_type, recommendations_db["unknown"])
         recommendation_data = face_shape_data.get(gender_type, face_shape_data.get(0)) # 해당 성별 정보가 없으면 남성(0) 정보 사용 (예외처리)
 
+
+        # 추천 스타일 value 리스트 가져오기
+        recommended_style_values = recommendation_data.get("styles", [])
+        recommendation_reason = recommendation_data.get("reason", "추천 이유를 찾을 수 없습니다.")
+
+        #DB에서 추천 스타일 상세 정보(이름, 이미지 URL) 조회
+        recommendations_details = [] # 최종 추천 목록 (이름, 이미지 URL 포함)
+        if recommended_style_values:
+            # value에 해당하는 한국어 이름 리스트 생성 (DB 쿼리용)
+            korean_names_to_query = [hairstyle_name_map.get(val, val) for val in recommended_style_values]
+
+            # DB에서 해당 이름들의 Hairstyle 정보 조회
+            # Hairstyle.name 필드를 기준으로 조회합니다. (이름이 unique하다고 가정)
+            try:
+                found_styles = Hairstyle.query.filter(Hairstyle.name.in_(korean_names_to_query)).all()
+                # 결과를 {name: image_url} 딕셔너리로 만들어 빠른 조회 가능하게 함
+                style_details_map = {style.name: style.image_url for style in found_styles}
+
+                # 추천 목록 순서대로 이름과 이미지 URL 매칭하여 리스트 생성
+                for api_value in recommended_style_values:
+                    korean_name = hairstyle_name_map.get(api_value, api_value) # Map에서 한국어 이름 찾기
+                    image_url = style_details_map.get(korean_name, 'placeholder.jpg') # DB 결과에서 이미지 URL 찾기
+
+                    recommendations_details.append({
+                        "name": korean_name,
+                        "image_url": image_url,
+                        "value": api_value  # <<< API value 추가!
+                    })
+            except Exception as db_e:
+                print(f"Error querying Hairstyle DB: {db_e}")
+                # DB 조회 실패 시, 이름만이라도 보내주기 (선택적 처리)
+                recommendations_details = [
+                     {"name": hairstyle_name_map.get(val, val), "image_url": "placeholder.jpg", "value": val}
+                     for val in recommended_style_values
+                ]
+   
         # 성별 코드(0, 1)를 한국어 문자열로 변환
         gender_kr = "남성" if gender_type == 0 else "여성" if gender_type == 1 else "알 수 없음"
 
+        # 얼굴형, 성별 한국어 이름 가져오기
+        face_shape_kr = face_shape_kr_map.get(face_shape_type, "알 수 없음")
+        gender_kr = gender_kr_map.get(gender_type, "알 수 없음")
+
         # 프론트엔드로 보낼 최종 결과 구성 (성별 정보 추가)
         result = {
-            "face_shape_kr": face_shape_data["name_kr"], # 얼굴형 한국어 이름
-            "gender_kr": gender_kr,                     # 성별 한국어 이름 추가
-            "recommendations": recommendation_data["styles"],
-            "reason": recommendation_data["reason"]
+            "face_shape_kr": face_shape_kr,
+            "gender_kr": gender_kr,
+            "recommendations": recommendations_details,
+            "reason": recommendation_reason
         }
         return jsonify(result)
 
@@ -312,27 +349,53 @@ def search_hairstyles_api():
     results_list = []
 
     if query:
-        # 검색어가 있을 때: 방법 1: 기본 '포함' 검색 (대소문자 무시)
-        print(f"Searching for: {query}")
-        search_term = f"%{query}%"
-        hairstyles = Hairstyle.query.filter(Hairstyle.name.ilike(search_term)).limit(20).all() # 예: 최대 20개
+        # --- 1. 유사도(Similarity) 검색 먼저 시도 ---
+        print(f"Attempting similarity search for: {query}")
+        threshold = 0.2 # 임계값 설정 (0.15 ~ 0.25 사이에서 조절)
+                       # ilike가 fallback이므로, 약간 높여서 더 유사한 것 위주로 찾아도 됨
+        try:
+            hairstyles = Hairstyle.query.filter(
+                func.similarity(Hairstyle.name, query) >= threshold
+            ).order_by(
+                func.similarity(Hairstyle.name, query).desc() # 유사도 높은 순 정렬
+            ).limit(20).all()
+            print(f"Similarity search found {len(hairstyles)} results.")
+        except Exception as sim_e:
+            # 데이터베이스 오류 등 예외 처리
+            print(f"Error during similarity search: {sim_e}. Falling back to ILIKE.")
+            hairstyles = [] # 오류 발생 시 빈 리스트로 초기화
 
-        # 방법 2: PostgreSQL pg_trgm 유사도 검색 (나중에 구현)
-        # from sqlalchemy import func, text
-        # threshold = 0.3 # 유사도 임계값
-        # hairstyles = Hairstyle.query.filter(func.similarity(Hairstyle.name, query) > threshold)\
-        #                           .order_by(func.similarity(Hairstyle.name, query).desc())\
-        #                           .limit(20).all()
+        # --- 2. 유사도 검색 결과가 없으면, ILIKE 검색으로 재시도 ---
+        if not hairstyles: # 유사도 검색 결과가 비어있는 경우
+            print(f"Similarity search yielded no results. Falling back to ILIKE search for: {query}")
+            search_term = f"%{query}%" # ILIKE용 검색어 (%와일드카드% 사용)
+            try:
+                # ILIKE 검색 실행 (대소문자 무시)
+                hairstyles = Hairstyle.query.filter(
+                    Hairstyle.name.ilike(search_term)
+                ).order_by(Hairstyle.name).limit(20).all() # 이름순 정렬 또는 다른 기준
+                print(f"ILIKE search found {len(hairstyles)} results.")
+            except Exception as ilike_e:
+                # ILIKE 검색 중 오류 발생 시
+                print(f"Error during ILIKE search: {ilike_e}")
+                hairstyles = [] # 오류 시 빈 리스트 보장
+
+    else:
+        # 검색어가 없을 때
+        print("No query, fetching initial list (limit 20)...")
+        hairstyles = Hairstyle.query.order_by(Hairstyle.name).limit(20).all()
 
         # 결과 직렬화
-        for style in hairstyles:
-            results_list.append({
-                'id': style.id,
-                'name': style.name,
-                'description': style.description,
-                'image_url': style.image_url,
-                'similar_styles_description': style.similar_styles_description
-            })
+    for style in hairstyles:
+        results_list.append({
+            'id': style.id,
+            'name': style.name,
+            'description': style.description,
+            'image_url': style.image_url,
+            'brand_price': style.brand_price,
+            'normal_price': style.normal_price,
+            'similar_styles_description': style.similar_styles_description
+        })
 
     return jsonify({'results': results_list})
 
@@ -409,6 +472,45 @@ def poll_for_result(task_id, api_key):
     return None
 
 
+# 헤어스타일 변환 옵션 정보 (index.html 기반)
+# API 'value'를 key로, '한국어 이름'을 value로 하는 딕셔너리
+hairstyle_name_map = {
+    # 남자 헤어스타일
+    "BuzzCut": "버즈컷 (반삭)", "UnderCut": "언더컷", "Pompadour": "퐁파두르",
+    "SlickBack": "슬릭백", "CurlyShag": "컬리 샤기컷", "WavyShag": "웨이비 샤기컷",
+    "FauxHawk": "포호크", "Spiky": "스파이키", "CombOver": "콤오버 (가르마)",
+    "HighTightFade": "하이 타이트 페이드", "ManBun": "맨번 (남자 묶음머리)",
+    "Afro": "아프로", "LowFade": "로우 페이드", "UndercutLongHair": "언더컷 롱헤어",
+    "TwoBlockHaircut": "투블럭컷", "TexturedFringe": "텍스처드 프린지 (질감 앞머리)",
+    "BluntBowlCut": "블런트 보울컷 (바가지머리)", "LongWavyCurtainBangs": "롱 웨이비 커튼뱅",
+    "MessyTousled": "메시 터슬드 (헝클어진 스타일)", "CornrowBraids": "콘로우 브레이드",
+    "LongHairTiedUp": "긴 머리 묶음", "Middle-parted": "가운데 가르마",
+    # 여자 헤어스타일
+    "ShortPixieWithShavedSides": "숏 픽시 (사이드 쉐이브)", "ShortNeatBob": "짧은 단발",
+    "DoubleBun": "더블 번 (양갈래 만두머리)", "Updo": "업두 (올림머리)", "Spiked": "스파이크 스타일",
+    "bowlCut": "보울컷 (바가지머리)", "Chignon": "시뇽 (쪽머리)", "PixieCut": "픽시컷",
+    "SlickedBack": "슬릭백", "LongCurly": "긴 곱슬머리", "CurlyBob": "곱슬 단발",
+    "StackedCurlsInShortBob": "스택 컬 숏 밥",
+    "SidePartCombOverHairstyleWithHighFade": "사이드 파트 콤오버 (하이 페이드)",
+    "WavyFrenchBobVibesfrom1920": "웨이비 프렌치 밥 (1920년대)", "BobCut": "단발컷",
+    "ShortTwintails": "짧은 양갈래", "ShortCurlyPixie": "짧은 곱슬 픽시컷",
+    "LongStraight": "긴 생머리", "LongWavy": "긴 웨이브", "FishtailBraid": "피쉬테일 브레이드",
+    "TwinBraids": "양갈래 땋기", "Ponytail": "포니테일", "Dreadlocks": "드레드락",
+    "Cornrows": "콘로우", "ShoulderLengthHair": "어깨 길이 머리",
+    "LooseCurlyAfro": "루즈 컬리 아프로", "LongTwintails": "긴 양갈래",
+    "LongHimeCut": "긴 히메컷", "BoxBraids": "박스 브레이드"
+}
+
+# 얼굴형 코드와 한국어 이름 매핑 (기존 recommendations_db 에서 분리 또는 활용)
+face_shape_kr_map = {
+    0: "각진형", 1: "삼각형", 2: "타원형 (계란형)",
+    3: "하트형 (역삼각형)", 4: "둥근형", "unknown": "알 수 없음"
+}
+
+# 성별 코드와 한국어 이름 매핑
+gender_kr_map = {
+    0: "남성", 1: "여성", "unknown": "알 수 없음" # 예비
+}
 
 if __name__ == '__main__':
     # 개발 서버 실행 (디버그 모드 활성화)
