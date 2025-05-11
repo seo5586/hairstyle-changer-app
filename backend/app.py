@@ -154,6 +154,49 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+# 헤어스타일 변환 옵션 정보 (index.html 기반)
+# API 'value'를 key로, '한국어 이름'을 value로 하는 딕셔너리
+hairstyle_name_map = {
+    # 남자 헤어스타일
+    "BuzzCut": "버즈컷 (반삭)", "UnderCut": "언더컷", "Pompadour": "퐁파두르",
+    "SlickBack": "슬릭백", "CurlyShag": "컬리 샤기컷", "WavyShag": "웨이비 샤기컷",
+    "FauxHawk": "포호크", "Spiky": "스파이키", "CombOver": "콤오버 (가르마)",
+    "HighTightFade": "하이 타이트 페이드", "ManBun": "맨번 (남자 묶음머리)",
+    "Afro": "아프로", "LowFade": "로우 페이드", "UndercutLongHair": "언더컷 롱헤어",
+    "TwoBlockHaircut": "투블럭컷", "TexturedFringe": "텍스처드 프린지 (질감 앞머리)",
+    "BluntBowlCut": "블런트 보울컷 (바가지머리)", "LongWavyCurtainBangs": "롱 웨이비 커튼뱅",
+    "MessyTousled": "메시 터슬드 (헝클어진 스타일)", "CornrowBraids": "콘로우 브레이드",
+    "LongHairTiedUp": "긴 머리 묶음", "Middle-parted": "가운데 가르마",
+    # 여자 헤어스타일
+    "ShortPixieWithShavedSides": "숏 픽시 (사이드 쉐이브)", "ShortNeatBob": "짧은 단발",
+    "DoubleBun": "더블 번 (양갈래 만두머리)", "Updo": "업두 (올림머리)", "Spiked": "스파이크 스타일",
+    "bowlCut": "보울컷 (바가지머리)", "Chignon": "시뇽 (쪽머리)", "PixieCut": "픽시컷",
+    "SlickedBack": "슬릭백", "LongCurly": "긴 곱슬머리", "CurlyBob": "곱슬 단발",
+    "StackedCurlsInShortBob": "스택 컬 숏 밥",
+    "SidePartCombOverHairstyleWithHighFade": "사이드 파트 콤오버 (하이 페이드)",
+    "WavyFrenchBobVibesfrom1920": "웨이비 프렌치 밥 (1920년대)", "BobCut": "단발컷",
+    "ShortTwintails": "짧은 양갈래", "ShortCurlyPixie": "짧은 곱슬 픽시컷",
+    "LongStraight": "긴 생머리", "LongWavy": "긴 웨이브", "FishtailBraid": "피쉬테일 브레이드",
+    "TwinBraids": "양갈래 땋기", "Ponytail": "포니테일", "Dreadlocks": "드레드락",
+    "Cornrows": "콘로우", "ShoulderLengthHair": "어깨 길이 머리",
+    "LooseCurlyAfro": "루즈 컬리 아프로", "LongTwintails": "긴 양갈래",
+    "LongHimeCut": "긴 히메컷", "BoxBraids": "박스 브레이드"
+}
+
+# 얼굴형 코드와 한국어 이름 매핑 (기존 recommendations_db 에서 분리 또는 활용)
+face_shape_kr_map = {
+    0: "각진형", 1: "삼각형", 2: "타원형 (계란형)",
+    3: "하트형 (역삼각형)", 4: "둥근형", "unknown": "알 수 없음"
+}
+
+# 성별 코드와 한국어 이름 매핑
+gender_kr_map = {
+    0: "남성", 1: "여성", "unknown": "알 수 없음" # 예비
+}
+
+
+
 # --- 정적 파일 서빙 (결과 이미지 표시용) ---
 # 실제 프로덕션에서는 Nginx 같은 웹 서버를 통해 서빙하는 것이 더 효율적입니다.
 # 여기서는 개발 편의성을 위해 Flask에서 직접 서빙합니다.
@@ -620,47 +663,6 @@ def poll_for_result(task_id, api_key):
 
     print("최대 시도 횟수 초과. 결과 확인 실패.")
     return None
-
-
-# 헤어스타일 변환 옵션 정보 (index.html 기반)
-# API 'value'를 key로, '한국어 이름'을 value로 하는 딕셔너리
-hairstyle_name_map = {
-    # 남자 헤어스타일
-    "BuzzCut": "버즈컷 (반삭)", "UnderCut": "언더컷", "Pompadour": "퐁파두르",
-    "SlickBack": "슬릭백", "CurlyShag": "컬리 샤기컷", "WavyShag": "웨이비 샤기컷",
-    "FauxHawk": "포호크", "Spiky": "스파이키", "CombOver": "콤오버 (가르마)",
-    "HighTightFade": "하이 타이트 페이드", "ManBun": "맨번 (남자 묶음머리)",
-    "Afro": "아프로", "LowFade": "로우 페이드", "UndercutLongHair": "언더컷 롱헤어",
-    "TwoBlockHaircut": "투블럭컷", "TexturedFringe": "텍스처드 프린지 (질감 앞머리)",
-    "BluntBowlCut": "블런트 보울컷 (바가지머리)", "LongWavyCurtainBangs": "롱 웨이비 커튼뱅",
-    "MessyTousled": "메시 터슬드 (헝클어진 스타일)", "CornrowBraids": "콘로우 브레이드",
-    "LongHairTiedUp": "긴 머리 묶음", "Middle-parted": "가운데 가르마",
-    # 여자 헤어스타일
-    "ShortPixieWithShavedSides": "숏 픽시 (사이드 쉐이브)", "ShortNeatBob": "짧은 단발",
-    "DoubleBun": "더블 번 (양갈래 만두머리)", "Updo": "업두 (올림머리)", "Spiked": "스파이크 스타일",
-    "bowlCut": "보울컷 (바가지머리)", "Chignon": "시뇽 (쪽머리)", "PixieCut": "픽시컷",
-    "SlickedBack": "슬릭백", "LongCurly": "긴 곱슬머리", "CurlyBob": "곱슬 단발",
-    "StackedCurlsInShortBob": "스택 컬 숏 밥",
-    "SidePartCombOverHairstyleWithHighFade": "사이드 파트 콤오버 (하이 페이드)",
-    "WavyFrenchBobVibesfrom1920": "웨이비 프렌치 밥 (1920년대)", "BobCut": "단발컷",
-    "ShortTwintails": "짧은 양갈래", "ShortCurlyPixie": "짧은 곱슬 픽시컷",
-    "LongStraight": "긴 생머리", "LongWavy": "긴 웨이브", "FishtailBraid": "피쉬테일 브레이드",
-    "TwinBraids": "양갈래 땋기", "Ponytail": "포니테일", "Dreadlocks": "드레드락",
-    "Cornrows": "콘로우", "ShoulderLengthHair": "어깨 길이 머리",
-    "LooseCurlyAfro": "루즈 컬리 아프로", "LongTwintails": "긴 양갈래",
-    "LongHimeCut": "긴 히메컷", "BoxBraids": "박스 브레이드"
-}
-
-# 얼굴형 코드와 한국어 이름 매핑 (기존 recommendations_db 에서 분리 또는 활용)
-face_shape_kr_map = {
-    0: "각진형", 1: "삼각형", 2: "타원형 (계란형)",
-    3: "하트형 (역삼각형)", 4: "둥근형", "unknown": "알 수 없음"
-}
-
-# 성별 코드와 한국어 이름 매핑
-gender_kr_map = {
-    0: "남성", 1: "여성", "unknown": "알 수 없음" # 예비
-}
 
 if __name__ == '__main__':
     # 개발 서버 실행 (디버그 모드 활성화)
