@@ -18,9 +18,17 @@ from sqlalchemy import func
 load_dotenv() # .env 파일 로드
 
 app = Flask(__name__)
+# 기존 로컬 개발용 주소와 함께, 배포된 프론트엔드의 정확한 URL을 추가합니다.
+frontend_deployed_url = "https://hairstyle-changer-app.onrender.com" # 사용자님의 프론트엔드 Render URL
+allowed_origins = [
+    'http://127.0.0.1:5500',    # 로컬 Live Server (http)
+    'http://localhost:5500',     # 로컬 Live Server (http)
+    frontend_deployed_url        # Render에 배포된 프론트엔드 (https)
+]
+
 #CORS(app) # 개발 환경에서 CORS 허용
 # 명시적으로 프론트엔드 출처를 지정하고, 자격 증명(쿠키) 허용
-CORS(app, supports_credentials=True, origins=['http://127.0.0.1:5500', 'http://localhost:5500'])
+CORS(app, supports_credentials=True, origins=allowed_origins)
 
 # === DB 설정 ===
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5432/defaultdb')
