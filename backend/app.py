@@ -2,21 +2,25 @@ import os
 import requests
 import time
 import uuid
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session, url_for, redirect
+from authlib.integrations.flask_client import OAuth
+from datetime import datetime, timezone
 from flask_cors import CORS
 from dotenv import load_dotenv
 from PIL import Image # Pillow 라이브러리 import
 import io # 이미지 데이터를 메모리에서 다루기 위해 import
 # === extensions.py 에서 db, migrate 가져오기 ===
 from extensions import db, migrate
-from models import Hairstyle
+from models import Hairstyle, User
 from sqlalchemy import func
 
 
 load_dotenv() # .env 파일 로드
 
 app = Flask(__name__)
-CORS(app) # 개발 환경에서 CORS 허용
+#CORS(app) # 개발 환경에서 CORS 허용
+# 명시적으로 프론트엔드 출처를 지정하고, 자격 증명(쿠키) 허용
+CORS(app, supports_credentials=True, origins=['http://127.0.0.1:5500', 'http://localhost:5500'])
 
 # === DB 설정 ===
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5432/defaultdb')
@@ -25,6 +29,31 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # SQLAlchemy 이벤트 처�
 # === 앱과 확장 연결 ===
 db.init_app(app)   # extensions에서 가져온 db 객체에 앱 연결
 migrate.init_app(app, db) # extensions에서 가져온 migrate 객체에 앱과 db 연결
+
+# === OAuth 설정 ===
+# FLASK_SECRET_KEY 로드 (세션 관리를 위해 필수)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_flask_secret_key_for_dev_only') # .env 파일에서 로드, 없으면 기본값
+if app.secret_key == 'default_flask_secret_key_for_dev_only':
+    print("경고: FLASK_SECRET_KEY가 기본값입니다. 프로덕션 환경에서는 반드시 변경하세요.")
+
+oauth = OAuth(app) # OAuth 객체 초기화
+
+# Google OAuth 클라이언트 등록
+# GOOGLE_CLIENT_ID와 GOOGLE_CLIENT_SECRET은 .env 파일에서 가져옵니다.
+# 이 값들은 Google Cloud Console에서 발급받아야 합니다. (다음 단계에서 안내)
+google = oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo', # OIDC Userinfo endpoint
+    client_kwargs={'scope': 'openid email profile'}, # 요청할 사용자 정보 범위
+    jwks_uri="https://www.googleapis.com/oauth2/v3/certs", # JWKS URI 추가
+)
 
 # === 모델 Import ===
 # 애플리케이션 컨텍스트 내부 또는 초기화 후에 모델을 임포트합니다.
@@ -398,6 +427,119 @@ def search_hairstyles_api():
         })
 
     return jsonify({'results': results_list})
+
+#Google 로그인 시작 라우트
+@app.route('/login/google')
+def login_google():
+    # Google 로그인 페이지로 리다이렉트할 URL 생성
+    # redirect_uri는 Google Cloud Console에 등록된 리다이렉트 URI와 일치해야 함
+    redirect_uri = url_for('authorized_google', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+#Google 로그인 후 콜백 처리 라우트
+@app.route('/login/google/authorized')
+def authorized_google():
+    print("--- Google Authorized Callback Received ---")
+    print(f"Request URL: {request.url}")
+    print(f"Request args: {request.args}")
+    try:
+        print("Attempting to authorize access token with Authlib...")
+        token = google.authorize_access_token() # Google로부터 토큰 받아오기
+        print(f"Received token from Google: {token}") # 받아온 토큰 전체 로그
+
+        if token is None:
+            print("Failed to receive token from Google (token is None).")
+            return jsonify({"error": "Google 로그인 실패: 접근 토큰을 받을 수 없습니다."}), 400
+
+        # 토큰 응답에 userinfo가 포함되어 있는지 확인하고 사용 (OIDC 표준)
+        # 로그에서 token 안에 userinfo가 있고, 그 안에 'sub'가 있는 것을 확인했습니다.
+        user_info_from_token = token.get('userinfo')
+
+        if not user_info_from_token:
+            # 만약 토큰에 userinfo가 없다면 (드문 경우), 별도로 userinfo 엔드포인트 호출
+            print("Userinfo not directly in token, attempting to fetch via userinfo_endpoint...")
+            try:
+                user_info_from_token = google.get('userinfo').json() # 또는 oauth.google.userinfo(token=token)
+            except Exception as e_userinfo_fetch:
+                print(f"Failed to fetch userinfo separately: {e_userinfo_fetch}")
+                return jsonify({"error": "Google 사용자 정보를 가져오는 데 실패했습니다 (별도 요청 실패)."}), 500
+        
+        print(f"User Info to process: {user_info_from_token}")
+
+        # Google 사용자의 고유 ID는 'sub' (subject) 필드입니다.
+        if not user_info_from_token or not user_info_from_token.get('sub'):
+            print(f"Google user ID ('sub') not found in user_info: {user_info_from_token}")
+            return jsonify({"error": "Google 사용자 ID를 가져올 수 없습니다."}), 400
+
+        google_id = user_info_from_token['sub']
+        email = user_info_from_token.get('email')
+        name = user_info_from_token.get('name')
+        profile_pic_url = user_info_from_token.get('picture')
+        print(f"Extracted Google ID: {google_id}, Email: {email}, Name: {name}")
+
+        # 데이터베이스에서 사용자 조회 또는 생성
+        user = User.query.filter_by(google_id=google_id).first()
+
+        if user:
+            # 기존 사용자: 마지막 로그인 시간, 필요한 경우 이메일/이름/프로필 사진 업데이트
+            user.last_login_at = datetime.now(timezone.utc)
+            if email and user.email != email: user.email = email
+            if name and user.name != name: user.name = name
+            if profile_pic_url and user.profile_pic_url != profile_pic_url: user.profile_pic_url = profile_pic_url
+            print(f"기존 사용자 업데이트: ID={user.id}, Email={user.email}")
+        else:
+            # 신규 사용자: DB에 새로 추가
+            user = User(
+                google_id=google_id,
+                email=email,
+                name=name,
+                profile_pic_url=profile_pic_url,
+                last_login_at=datetime.now(timezone.utc),
+                credits=0 # 기본 크레딧
+            )
+            db.session.add(user)
+            print(f"새로운 사용자 생성: Email={user.email}")
+        
+        db.session.commit()
+        print(f"사용자 정보 DB에 커밋 완료 (User ID: {user.id})")
+
+        # 세션에 사용자 정보 저장
+        session['user'] = {
+            'id': user.id, # 우리 DB의 사용자 ID
+            'google_id': user.google_id,
+            'email': user.email,
+            'name': user.name,
+            'profile_pic_url': user.profile_pic_url
+        }
+        print(f"세션에 저장된 사용자 정보: {session.get('user')}")
+
+        # 로그인 성공 후 프론트엔드의 메인 페이지(또는 이전에 있던 페이지)로 리다이렉트
+        frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500') # Live Server 포트
+        return redirect(f"{frontend_url}/index.html") # 예시: index.html로 리다이렉트
+
+    except Exception as e:
+        import traceback
+        print(f"!!!!!!!!!! Google 로그인 콜백 처리 중 예외 발생 !!!!!!!!!!")
+        print(f"오류 상세: {e}")
+        traceback.print_exc()
+        # Authlib에서 발생하는 특정 OAuth 오류는 다른 상태 코드를 가질 수 있지만,
+        # 일반적인 예외는 500으로 처리합니다.
+        return jsonify({"error": f"Google 로그인 처리 중 서버 내부 오류 발생: {str(e)}"}), 500
+
+#로그아웃 라우트
+@app.route('/logout')
+def logout():
+    session.pop('user', None) # 세션에서 사용자 정보 제거
+    frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
+    return redirect(f"{frontend_url}/index.html") # 로그아웃 후 메인 페이지로
+
+#현재 로그인 상태 확인 API (프론트엔드용
+@app.route('/api/auth/status')
+def auth_status():
+    if 'user' in session:
+        return jsonify({"logged_in": True, "user": session['user']})
+    else:
+        return jsonify({"logged_in": False})
 
 def poll_for_result(task_id, api_key):
     """주어진 task_id로 공통 비동기 작업 결과 API를 주기적으로 확인합니다."""

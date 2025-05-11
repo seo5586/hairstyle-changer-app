@@ -4,21 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>헤어스타일 변환 서비스</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="loginModalOverlay" class="intro-popup-overlay hidden"> <div id="loginModalBox" class="intro-popup-box" style="max-width: 350px;"> <h2 style="margin-bottom: 20px;">로그인 / 시작하기</h2>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 25px; text-align: center;">Google 계정으로 간편하게 시작하세요.</p>
+            <button id="googleLoginButton" class="google-login-button">
+                <img id="googleLoginLogo" src="#" alt="G" class="google-logo-icon">
+                Google 계정으로 로그인
+            </button>
+            <button id="closeLoginModalButton" class="modal-close-button">닫기</button>
+        </div>
+    </div>
+    <div class="intro-popup-overlay hidden" id="introPopup">
+        <div class="intro-popup-box">
+          <h2>HAIRITHM 사용 방법</h2>
+          <ul>
+            <li>얼굴형 분석 및 추천 먼저 해보기</li>
+            <li>AI가 추천해준 헤어스타일을 내 얼굴에 입혀보기</li>
+            <li>마음에 든다면 가능한 미용실 예약하기</li>
+          </ul>
+          <label><input type="checkbox" id="dontShowToday" /> 오늘 하루 보지 않기</label>
+          <button onclick="closeIntroPopup()">확인</button>
+        </div>
+    </div>
     
-    <header>
-        <nav class="navbar">
+    <header class="header-bar">
+        <div class="header-inner">  <a href="index.html" class="home-button" title="홈으로">
+                <span class="material-symbols-outlined">home</span>
+            </a>
+            <h1 class="logo">
+                <span class="hair">HAIR</span><span class="ithm">ITHM</span>
+            </h1>
+            <div id="authButtonContainer" class="auth-button-container">
+                <button id="authButton" class="header-auth-button">로그인</button>
+            </div>
+            </div> <nav class="navbar">
             <ul>
-                <li><a href="index.html" class="active">헤어스타일 변환</a></li>
+                <li><a href="index.html">헤어스타일 변환</a></li>
                 <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
-                <li><a href="search.html">헤어스타일 검색</a></li> 
+                <li><a href="search.html">헤어스타일 검색</a></li>
                 <li><a href="map.html">주변 미용실 검색</a></li>
             </ul>
         </nav>
     </header>
-    <hr style="margin-bottom: 30px;"> <h1>헤어스타일 변환</h1>
+    <hr style="margin-bottom: 30px" />
+    <h1>헤어스타일 변환</h1>
 
     <div class="container">
         <div class="upload-section">
@@ -89,6 +122,10 @@
             </select>
         </div>
 
+        <div id="hairstylePreviewArea" class="hairstyle-preview-area" style="display: none; margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+          <p>스타일 선택 시 여기에 미리보기가 표시됩니다.</p>
+        </div>
+
         <div class="options-section">
             <h2>3. 헤어 컬러 선택</h2>
             <select id="hairColorSelect">
@@ -123,9 +160,15 @@
         <div class="result-section">
             <h2>변환 결과</h2>
             <img id="resultImage" src="#" alt="변환 결과 이미지" style="display: none; max-width: 400px; margin-top: 10px;">
+
+            <div id="resultButtonsContainer" class="result-buttons" style="display: none;">
+                <button onclick="window.location.reload()">한번 더 하기</button>
+                <button onclick="saveImage()">사진 저장하기</button>
+            </div>
         </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+    <script src="common.js"></script> </body>
+</html>
 </html>

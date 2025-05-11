@@ -3,32 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>헤어스타일 검색</title>
-    <link rel="stylesheet" href="style.css"> <style> /* search.html에만 적용될 스타일 */
-        #results { margin-top: 20px; }
-        .result-item { display: flex; border: 1px solid #eee; margin-bottom: 15px; padding: 10px; }
-        .result-item img { width: 100px; height: 100px; object-fit: cover; margin-right: 15px; background-color: #f0f0f0; }
-        .result-item .info h3 { margin: 0 0 5px 0; }
-        .result-item .info p { margin: 3px 0; font-size: 0.9em; color: #555; }
-        .result-item .info .similar { font-size: 0.8em; color: #777; margin-top: 8px; }
-        .search-bar { margin-bottom: 20px; display: flex; gap: 5px; }
-        #searchInput { flex-grow: 1; padding: 8px; }
-        #searchButton { padding: 8px 15px; }
-    </style>
+    <title>헤어스타일 검색</title> <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar">
+  <div id="loginModalOverlay" class="intro-popup-overlay hidden">
+    <div id="loginModalBox" class="intro-popup-box" style="max-width: 350px;">
+        <h2 style="margin-bottom: 20px;">로그인 / 시작하기</h2>
+        <p style="font-size: 0.9em; color: #666; margin-bottom: 25px; text-align: center;">Google 계정으로 간편하게 시작하세요.</p>
+        <button id="googleLoginButton" class="google-login-button">
+            <img id="googleLoginLogo" src="#" alt="G" class="google-logo-icon"> Google 계정으로 로그인
+        </button>
+        <button id="closeLoginModalButton" class="modal-close-button">닫기</button>
+    </div>
+  </div>
+    <header class="header-bar">
+        <div class="header-inner">  <a href="index.html" class="home-button" title="홈으로">
+                <span class="material-symbols-outlined">home</span>
+            </a>
+            <h1 class="logo">
+                <span class="hair">HAIR</span><span class="ithm">ITHM</span>
+            </h1>
+            <div id="authButtonContainer" class="auth-button-container">
+                <button id="authButton" class="header-auth-button">로그인</button>
+            </div>
+            </div> <nav class="navbar">
             <ul>
                 <li><a href="index.html">헤어스타일 변환</a></li>
                 <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
-                <li><a href="search.html" class="active">헤어스타일 검색</a></li>
+                <li><a href="search.html">헤어스타일 검색</a></li>
                 <li><a href="map.html">주변 미용실 검색</a></li>
             </ul>
         </nav>
     </header>
     <hr style="margin-bottom: 30px;">
-
     <h1>헤어스타일 검색</h1>
 
     <div class="container">
@@ -39,5 +48,7 @@
         <div id="statusMessage" class="status"></div>
         <div id="results"></div> </div>
 
-    <script src="search_script.js"></script> </body>
+    <script src="search_script.js"></script> 
+    <script src="common.js"></script>
+</body>
 </html>

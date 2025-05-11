@@ -3,30 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>얼굴형 분석 및 헤어스타일 추천</title>
-    <link rel="stylesheet" href="style.css"> <style>
-        /* 이 페이지에만 필요한 추가 스타일 (선택사항) */
-        .result-section ul {
-            list-style: disc;
-            margin-left: 20px;
-        }
-        .result-section li {
-            margin-bottom: 5px;
-        }
-    </style>
+    <title>얼굴형 분석 & 추천</title> 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar">
+  <div id="loginModalOverlay" class="intro-popup-overlay hidden">
+    <div id="loginModalBox" class="intro-popup-box" style="max-width: 350px;">
+        <h2 style="margin-bottom: 20px;">로그인 / 시작하기</h2>
+        <p style="font-size: 0.9em; color: #666; margin-bottom: 25px; text-align: center;">Google 계정으로 간편하게 시작하세요.</p>
+        <button id="googleLoginButton" class="google-login-button">
+            <img id="googleLoginLogo" src="#" alt="G" class="google-logo-icon"> Google 계정으로 로그인
+        </button>
+        <button id="closeLoginModalButton" class="modal-close-button">닫기</button>
+    </div>
+  </div>
+    <header class="header-bar">
+        <div class="header-inner">  <a href="index.html" class="home-button" title="홈으로">
+                <span class="material-symbols-outlined">home</span>
+            </a>
+            <h1 class="logo">
+                <span class="hair">HAIR</span><span class="ithm">ITHM</span>
+            </h1>
+            <div id="authButtonContainer" class="auth-button-container">
+                <button id="authButton" class="header-auth-button">로그인</button>
+            </div>
+            </div> <nav class="navbar">
             <ul>
                 <li><a href="index.html">헤어스타일 변환</a></li>
-                <li><a href="analyzer.html" class="active">얼굴형 분석 & 추천</a></li>
-                <li><a href="search.html">헤어스타일 검색</a></li> 
+                <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
+                <li><a href="search.html">헤어스타일 검색</a></li>
                 <li><a href="map.html">주변 미용실 검색</a></li>
             </ul>
         </nav>
     </header>
-    <hr style="margin-bottom: 30px;"> <h1>얼굴형 분석 & 헤어스타일 추천</h1>
+    <hr style="margin-bottom: 30px" />
+    <h1>얼굴형 분석 & 헤어스타일 추천</h1>
     
     <div class="container">
         <div class="upload-section">
@@ -45,13 +58,13 @@
             <p><strong>감지된 성별:</strong> <span id="genderResult"></span></p>
             <p><strong>나의 얼굴형:</strong> <span id="faceShapeResult"></span></p>
             <h3>추천 헤어스타일:</h3>
-            <ul id="recommendationsList">
-                </ul>
+            <div id="recommendationsContainer" style="margin-top: 10px;"></div>
             <h3>추천 이유:</h3>
             <p id="recommendationReason"></p>
         </div>
     </div>
 
     <script src="analyzer_script.js"></script>
+    <script src="common.js"></script>
 </body>
 </html>

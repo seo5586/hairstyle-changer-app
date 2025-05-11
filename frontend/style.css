@@ -79,6 +79,7 @@ button:disabled {
     border-radius: 4px;
     text-align: center;
     font-weight: bold;
+    margin-bottom: 20px;
 }
 
 .status.processing {
@@ -97,52 +98,6 @@ button:disabled {
     background-color: #dff0d8;
     color: #3c763d;
     border: 1px solid #d6e9c6;
-}
-
-/* ================== 네비게이션 메뉴 스타일 ================== */
-header {
-    background-color: #f8f9fa; /* 메뉴 배경색 (연한 회색) */
-    padding: 15px 0;
-    border-bottom: 1px solid #dee2e6; /* 하단 테두리 */
-}
-
-.navbar ul {
-    list-style: none; /* 리스트 기본 스타일 제거 */
-    padding: 0;
-    margin: 0;
-    text-align: center; /* 메뉴 항목 가운데 정렬 */
-}
-
-.navbar li {
-    display: inline-block; /* 메뉴 항목 가로 배치 */
-    margin: 0 20px; /* 메뉴 항목 간 간격 */
-}
-
-.navbar a {
-    text-decoration: none; /* 링크 밑줄 제거 */
-    color: #495057; /* 링크 기본 색상 */
-    font-size: 1.1em; /* 글자 크기 */
-    font-weight: 500; /* 글자 두께 */
-    padding: 5px 0;
-    transition: color 0.2s ease-in-out; /* 색상 변경 시 부드러운 효과 */
-}
-
-.navbar a:hover {
-    color: #007bff; /* 마우스 올렸을 때 링크 색상 */
-}
-
-/* 현재 활성화된 페이지 링크 스타일 (선택사항) */
-.navbar a.active {
-    color: #0056b3; /* 활성 링크 색상 */
-    font-weight: bold; /* 활성 링크 굵게 */
-    border-bottom: 2px solid #0056b3; /* 활성 링크 아래 강조선 */
-}
-
-/* 페이지 내용과 메뉴 구분선 아래 간격 (선택사항) */
-hr {
-    border: none;
-    border-top: 1px solid #eee;
-    margin-top: 0; /* header의 border-bottom과 겹치지 않게 */
 }
 
 #map {
@@ -188,4 +143,566 @@ hr {
     /* color: white; */
     /* border: none; */
     /* border-radius: 5px; */
+}
+
+/* 다운로드 버튼 스타일 */
+.button-like {
+    display: inline-block; /* 또는 block */
+    padding: 10px 15px;
+    background-color: #007bff; /* 파란색 계열 버튼 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+/* 호버(마우스 올려놓기) 발생시, 배경색 변경 */
+.button-like:hover {
+    background-color: #0056b3;
+    text-decoration: none; /* 밑줄 제거 */
+}
+
+/* 개별 추천 헤어스타일 항목 */
+.recommendation-item {
+    display: flex;
+    flex-direction: column; /* 아이템들을 세로로 쌓음 (이름 위, 이미지 아래) */
+
+    align-items: center; /* 세로로 쌓을 때 가로축(이제는 cross-axis) 기준 중앙 정렬 */
+    padding: 15px; /* 내부 여백 약간 조정 */
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    text-align: center; /* 이름 텍스트 가운데 정렬되도록 */
+}
+
+/* 추천 헤어스타일 이미지 */
+.recommendation-item img {
+    width: 100px;  /* 이미지 너비 (예: 60px로 조정) */
+    height: 100px; /* 이미지 높이 (예: 60px로 조정) */
+    object-fit: cover; /* 이미지가 비율을 유지하면서 지정된 크기에 꽉 차도록 표시 (균일 크기 핵심) */
+
+    margin-top: 8px;    /* 이름과 이미지 사이에 약간의 세로 간격 추가 */
+    border-radius: 4px; /* 이미지 모서리 약간 둥글게 */
+    background-color: #e9ecef; /* 이미지가 없을 경우 배경색 */
+    flex-shrink: 0; /* 이미지가 부모 요소에 의해 줄어들지 않도록 */
+}
+
+/* 추천 헤어스타일 이름 (기존 스타일 유지 또는 필요시 조정) */
+.recommendation-item span {
+    font-weight: 500;
+    font-size: 0.95em;
+    color: #333;
+}
+
+/* 검색 결과 가격 표시 스타일 */
+.result-item .info .price {
+    font-size: 0.9em;      /* 약간 작은 폰트 크기 */
+    color: #007bff;        /* 가격 색상 (예: 파란색) */
+    /* color: #e91e63; */ /* 또는 다른 강조 색상 (예: 핑크) */
+    font-weight: bold;     /* 약간 굵게 */
+    margin: 5px 0 0 0;     /* 위쪽 여백 추가 */
+    line-height: 1.3;      /* 줄 간격 조정 */
+}
+
+/* 미용실 목록 컨테이너 */
+.salon-list-container {
+    max-height: 400px; /* 목록의 최대 높이 지정 (스크롤 생성) */
+    overflow-y: auto; /* 내용이 많으면 세로 스크롤 */
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+/* 미용실 목록 */
+.salon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 목록 아이템 사이 간격 */
+}
+
+/* 개별 미용실 목록 아이템 */
+.salon-list-item {
+  display: flex; /* 자식 요소(텍스트 정보, 사진)를 가로로 배치 */
+  flex-direction: row; /* 명시적으로 가로 방향 */
+  align-items: flex-start; /* 아이템들을 위쪽 기준으로 정렬 */
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+/* 목록 아이템 내 텍스트 정보 영역 (왼쪽) */
+.salon-list-item .salon-item-text-content {
+  flex-grow: 1; /* 남은 공간을 모두 차지하도록 */
+  margin-right: 15px; /* 사진과의 간격 */
+}
+
+/* 목록 아이템 내 사진 스타일 (오른쪽) */
+.salon-list-item .salon-photo {
+  width: 100px;  /* 사진 너비 고정 */
+  height: 100px; /* 사진 높이 고정 */
+  object-fit: cover; /* 비율 유지하며 채우기 */
+  border-radius: 4px;
+  background-color: #e0e0e0;
+  flex-shrink: 0; /* 사진이 줄어들지 않도록 */
+  /* 이전 margin-bottom 등 세로 배치용 여백 제거 */
+}
+
+
+.salon-list-item:hover {
+    background-color: #f0f0f0; /* 마우스 올리면 배경색 변경 */
+}
+
+.salon-list-item h3 { /* 이름 */
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    color: #333;
+    border-bottom: none; /* h3 기본 스타일 초기화 */
+    padding-bottom: 0;
+    text-align: left;
+}
+
+.salon-list-item p { /* 주소, 전화번호 등 */
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: #555;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.salon-list-item .salon-details p { /* 상세 정보 영역 안의 p 태그 */
+     margin: 6px 0;
+}
+
+.salon-list-item strong { /* 강조 텍스트 (예: 별점) */
+    color: #E67E22; /* 주황색 계열 */
+}
+
+.salon-hours { /* 영업 시간 */
+    font-size: 0.85em;
+    color: #666;
+    white-space: pre-line; /* 줄바꿈(\n) 적용 */
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #ddd;
+}
+
+.salon-status { /* 영업 상태 */
+    font-weight: bold;
+    font-size: 0.9em;
+}
+.salon-status.open {
+    color: #27AE60; /* 초록색 */
+}
+.salon-status.closed {
+    color: #E74C3C; /* 빨간색 */
+}
+
+.salon-list-item .loading-details {
+    font-style: italic;
+    color: #888;
+    font-size: 0.85em;
+}
+
+/* 검색 결과 유사 스타일 설명 스타일 */
+.result-item .info .similar-desc {
+  font-size: 0.85em;
+  color: #555;
+  margin-top: 8px;
+  font-style: italic;
+  line-height: 1.4;
+}
+/* ================== 새로운 디자인 스타일 시작 ================== */
+
+/* 새 Header 스타일 */
+.header-bar {
+  background-color: #000; /* 검은색 배경 */
+  padding: 10px 20px;
+  border-bottom: 1px solid #333; /* 약간 밝은 검은색 테두리 */
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 로고와 홈 버튼 양쪽 정렬 */
+}
+
+.home-button {
+  color: white;
+  text-decoration: none;
+  font-size: 28px; /* 아이콘 크기 조정 위해 */
+  display: flex;
+  align-items: center;
+}
+
+.home-button:hover {
+  color: #e91e63; /* 핑크 계열 호버 색상 */
+}
+
+/* Google Material Symbols 아이콘 스타일 */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48;
+  font-size: 36px; /* 아이콘 크기 */
+  vertical-align: middle; /* 다른 요소와 세로 정렬 */
+}
+
+/* 새 Logo 스타일 */
+.logo {
+  font-family: "Poppins", sans-serif; /* Poppins 폰트 적용 */
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: white;
+  text-align: center;
+  margin: 0 auto; /* 좌우 여백 auto로 가운데 정렬 */
+  flex-grow: 1; /* 남는 공간 차지 (홈 버튼 제외하고 중앙에 오도록) */
+}
+
+.logo .hair { /* 로고 내 HAIR 부분 색상 */
+  color: #e91e63; /* 핑크 */
+}
+.logo .ithm { /* 로고 내 ITHM 부분 색상 */
+  color: #3f51b5; /* 파랑 */
+}
+
+/* 새 Navbar 스타일 (검은색 배경 기준) */
+.navbar ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0; /* 헤더 내부 로고 영역과 약간 간격 */
+  text-align: center;
+}
+
+.navbar li {
+  display: inline-block;
+  margin: 0 20px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: #f8f9fa; /* 어두운 배경에 밝은 글씨 */
+  font-size: 1.1em;
+  font-weight: 500;
+  padding: 5px 0;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar a:hover {
+  color: #ff69b4; /* 밝은 핑크 호버 색상 */
+}
+
+.navbar a.active {
+  color: #e91e63; /* 활성 링크 핑크 색상 */
+  font-weight: bold;
+  border-bottom: 2px solid #e91e63; /* 하단 핑크 강조선 */
+}
+
+/* 새 hr 스타일 */
+hr {
+  border: none;
+  border-top: 1px solid #f8f9fa; /* 헤더 아래 구분선 (밝은 색) */
+  margin-top: 0;
+  /* margin-bottom은 HTML에서 인라인으로 준 30px 유지 */
+}
+
+/* Intro Popup 스타일 */
+.intro-popup-overlay {
+  position: fixed; /* 화면 기준 고정 */
+  top: 0;
+  left: 0;
+  width: 100vw; /* 화면 전체 너비 */
+  height: 100vh; /* 화면 전체 높이 */
+  background-color: rgba(0, 0, 0, 0.6); /* 반투명 검은 배경 */
+  display: flex; /* Flexbox로 내용 가운데 정렬 */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* 다른 요소들 위에 보이도록 */
+}
+
+.intro-popup-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: left;
+  position: relative;
+}
+
+.intro-popup-box h2 {
+  margin-top: 0;
+  font-size: 22px;
+  margin-bottom: 10px;
+  text-align: center; /* 팝업 제목 가운데 정렬 */
+  color: #333; /* 제목 색상 */
+}
+
+.intro-popup-box ul {
+  padding-left: 20px;
+  margin-bottom: 15px; /* 여백 조정 */
+  list-style-type: decimal; /* 숫자 목록 */
+}
+
+.intro-popup-box li {
+  margin-bottom: 8px; /* 목록 간 간격 */
+  color: #444; /* 목록 글자색 */
+}
+
+.intro-popup-box label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-top: 15px; /* 여백 조정 */
+  color: #555;
+}
+
+.intro-popup-box input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.intro-popup-box button {
+  margin-top: 20px; /* 여백 조정 */
+  padding: 10px 20px;
+  background-color: #3f51b5; /* 파란색 버튼 */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  float: right; /* 오른쪽 정렬 */
+  width: auto; /* 버튼 너비 자동 */
+  font-size: 15px; /* 폰트 크기 */
+}
+.intro-popup-box button:hover {
+  background-color: #303f9f; /* 호버 시 약간 어둡게 */
+}
+
+/* 팝업 숨김 스타일 */
+.intro-popup-overlay.hidden {
+  display: none;
+}
+
+/* 팝업 열렸을 때 body 스크롤 방지 */
+body.popup-open {
+  overflow: hidden;
+}
+
+/* 헤어스타일 변환 결과 버튼 스타일 */
+.result-buttons {
+  margin-top: 15px;
+  display: flex; /* 버튼 가로 배치 */
+  justify-content: center; /* 가운데 정렬 */
+  gap: 15px; /* 버튼 사이 간격 */
+}
+
+.result-buttons button {
+  width: auto; /* 버튼 너비 내용에 맞게 */
+  padding: 10px 20px;
+  font-size: 15px;
+  background-color: #3f51b5; /* 파란색 버튼 */
+  /* 기존 button 스타일 상속 및 필요시 재정의 */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 0; /* 일반 button의 margin-top 제거 */
+}
+
+.result-buttons button:hover {
+  background-color: #303f9f; /* 호버 시 약간 어둡게 */
+}
+
+/* 미용실 목록 아이템 내 사진 스타일 */
+.salon-list-item .salon-photo {
+  width: 100%; /* 부모(.salon-details) 너비에 맞춤 */
+  max-width: 120px; /* 사진의 최대 너비 (필요시 조절) */
+  height: 120px;    /* 사진 높이 (너비와 같게 하여 정사각형) */
+  object-fit: cover; /* 이미지가 비율을 유지하며 지정된 영역을 덮도록 */
+  border-radius: 4px; /* 모서리 둥글게 */
+  margin-bottom: 10px; /* 사진 아래 다른 정보들과의 간격 */
+  background-color: #f0f0f0; /* 이미지가 없거나 로딩 중일 때 배경색 */
+  display: block; /* 블록 요소로 만들어 위아래 여백 적용 용이 */
+  margin-left: auto;  /* 가운데 정렬 (max-width 사용 시) */
+  margin-right: auto; /* 가운데 정렬 (max-width 사용 시) */
+}
+
+/* 개별 검색 결과 아이템 컨테이너 */
+.result-item {
+  display: flex;           /* 자식 요소(이미지, 정보)를 가로로 배치 (핵심!) */
+  align-items: flex-start; /* 아이템들을 위쪽 기준으로 정렬 (또는 center도 가능) */
+  border: 1px solid #eee;  /* 테두리 (네모난 칸) */
+  margin-bottom: 15px;     /* 아이템 간 하단 여백 */
+  padding: 15px;           /* 내부 여백 */
+  border-radius: 6px;      /* 모서리 둥글게 */
+  background-color: #fff;  /* 배경색 (흰색) */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 약간의 그림자 (선택 사항) */
+}
+
+/* 검색 결과 이미지 (왼쪽) */
+.result-item img {
+  width: 150px;          /* 이미지 너비 고정 */
+  height: 150px;         /* 이미지 높이 고정 */
+  object-fit: cover;     /* 이미지가 비율 유지하며 채우도록 */
+  margin-right: 15px;    /* 이미지와 텍스트 정보 사이 오른쪽 여백 */
+  background-color: #f0f0f0; /* 이미지 로딩 전/실패 시 배경색 */
+  flex-shrink: 0;        /* Flex 컨테이너 내에서 이미지가 줄어들지 않도록 */
+  border-radius: 4px;    /* 이미지 모서리 약간 둥글게 */
+}
+
+/* 검색 결과 텍스트 정보 컨테이너 (오른쪽) */
+.result-item .info {
+  display: flex;
+  flex-direction: column; /* 정보(제목, 설명, 가격 등)들을 세로로 쌓음 */
+  flex-grow: 1;           /* 이미지를 제외한 남은 공간을 모두 차지 */
+}
+
+/* 검색 결과 제목 (h3) */
+.result-item .info h3 {
+  margin: 0 0 8px 0; /* 위쪽 여백 제거, 아래쪽 여백 설정 */
+  font-size: 1.1em;
+  color: #333;
+  text-align: left; /* 텍스트 왼쪽 정렬 */
+  border-bottom: none; /* 일반 h3 스타일과 다를 수 있으므로 명시 */
+  padding-bottom: 0;   /* 일반 h3 스타일과 다를 수 있으므로 명시 */
+}
+
+/* 검색 결과 설명 (p) */
+.result-item .info p {
+  margin: 4px 0;
+  font-size: 0.9em;
+  color: #555;
+  line-height: 1.4;
+  text-align: left; /* 텍스트 왼쪽 정렬 */
+}
+
+/* 헤어스타일 미리보기 영역 전체 */
+.hairstyle-preview-area {
+  /* margin, padding, border 등은 index.html 인라인 스타일에 이미 있음 */
+  /* 필요하다면 여기서 추가/수정 가능 */
+  background-color: #f9f9f9; /* 약간의 배경색 */
+}
+
+/* 미리보기 내용 컨테이너 (이미지와 텍스트를 감싸는 flex 컨테이너) */
+.hairstyle-preview-area .preview-content {
+  display: flex;
+  align-items: flex-start; /* 상단 정렬 */
+  gap: 15px; /* 이미지와 텍스트 사이 간격 */
+}
+
+/* 미리보기 이미지 */
+.hairstyle-preview-area .preview-image {
+  width: 100px;  /* 원하는 이미지 크기 */
+  height: 100px; /* 원하는 이미지 크기 */
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  background-color: #e0e0e0; /* 이미지 로딩 전 배경 */
+  flex-shrink: 0; /* 이미지가 줄어들지 않도록 */
+}
+
+/* 미리보기 텍스트 정보 영역 */
+.hairstyle-preview-area .preview-info {
+  flex-grow: 1; /* 남은 공간 차지 */
+  text-align: left; /* 텍스트 왼쪽 정렬 */
+}
+
+/* 미리보기 헤어스타일 이름 */
+.hairstyle-preview-area .preview-name {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+  margin-top: 0; /* 위쪽 여백 제거 */
+  margin-bottom: 8px;
+  text-align: left; /* 제목도 왼쪽 정렬 명시 */
+}
+
+/* 미리보기 헤어스타일 설명 */
+.hairstyle-preview-area .preview-description {
+  font-size: 0.9em;
+  color: #555;
+  line-height: 1.5;
+  margin-top: 0;
+  margin-bottom: 0; /* 아래쪽 여백 제거 */
+  text-align: left; /* 설명도 왼쪽 정렬 명시 */
+}
+
+/* 헤더 내 인증 버튼 컨테이너 */
+.auth-button-container {
+    /* header-inner가 flex이므로, 이 버튼을 오른쪽 끝으로 보내기 위해 */
+    /* 로고에 flex-grow: 1, margin: 0 auto가 있으므로 이 컨테이너는 자연스럽게 오른쪽에 배치될 수 있음 */
+    /* 필요하다면 header-inner의 justify-content를 space-between으로 하고 로고의 margin auto를 제거 */
+}
+
+/* 헤더 내 로그인/로그아웃 버튼 */
+.header-auth-button {
+    width: auto; /* 내용에 맞게 너비 조정 */
+    padding: 6px 12px; /* 헤더에 맞게 패딩 약간 줄임 */
+    font-size: 0.9em; /* 폰트 크기 약간 줄임 */
+    background-color: #e91e63; /* 새 디자인의 포인트 색상 */
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 0; /* button 기본 margin-top 제거 */
+    margin-left: 10px; /* 로고와의 간격 */
+}
+
+.header-auth-button:hover {
+    background-color: #c2185b; /* 호버 시 약간 어둡게 */
+}
+
+/* 로그인 모달 (기존 intro-popup 스타일 재활용 또는 커스텀) */
+/* #loginModalOverlay, #loginModalBox 는 intro-popup-overlay, intro-popup-box 클래스를 이미 사용 중 */
+
+/* Google 로그인 버튼 */
+.google-login-button {
+    display: flex; /* 아이콘과 텍스트 정렬 */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    background-color: #4285F4; /* Google 파란색 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    margin-top: 0; /* button 기본 margin-top 제거 */
+}
+
+.google-login-button:hover {
+    background-color: #357ae8;
+}
+
+.google-logo-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    vertical-align: middle; /* 텍스트와 수직 중앙 정렬 */
+}
+
+/* 모달 닫기 버튼 */
+.modal-close-button {
+    display: block; /* 버튼을 블록 요소로 만들어 전체 너비 차지 */
+    width: 100%;    /* 너비 100% */
+    margin-top: 15px;
+    padding: 10px 0; /* 패딩 조정 */
+    background-color: #6c757d; /* 회색 계열 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.modal-close-button:hover {
+    background-color: #5a6268;
 }

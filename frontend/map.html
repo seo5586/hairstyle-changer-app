@@ -1,43 +1,65 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주변 미용실 검색</title>
-    <link rel="stylesheet" href="style.css"> <style>
-        /* 지도 표시 영역 스타일 */
-        #map {
-            height: 600px; /* 원래 지도의 높이 */
-            width: 100%;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주변 미용실 검색</title> <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-    <header>
-        <nav class="navbar">
+  <div id="loginModalOverlay" class="intro-popup-overlay hidden">
+    <div id="loginModalBox" class="intro-popup-box" style="max-width: 350px;">
+        <h2 style="margin-bottom: 20px;">로그인 / 시작하기</h2>
+        <p style="font-size: 0.9em; color: #666; margin-bottom: 25px; text-align: center;">Google 계정으로 간편하게 시작하세요.</p>
+        <button id="googleLoginButton" class="google-login-button">
+            <img id="googleLoginLogo" src="#" alt="G" class="google-logo-icon"> Google 계정으로 로그인
+        </button>
+        <button id="closeLoginModalButton" class="modal-close-button">닫기</button>
+    </div>
+  </div>
+    <header class="header-bar">
+        <div class="header-inner">  <a href="index.html" class="home-button" title="홈으로">
+                <span class="material-symbols-outlined">home</span>
+            </a>
+            <h1 class="logo">
+                <span class="hair">HAIR</span><span class="ithm">ITHM</span>
+            </h1>
+            <div id="authButtonContainer" class="auth-button-container">
+                <button id="authButton" class="header-auth-button">로그인</button>
+            </div>
+            </div> <nav class="navbar">
             <ul>
                 <li><a href="index.html">헤어스타일 변환</a></li>
                 <li><a href="analyzer.html">얼굴형 분석 & 추천</a></li>
                 <li><a href="search.html">헤어스타일 검색</a></li>
-                <li><a href="map.html" class="active">주변 미용실 검색</a></li>
+                <li><a href="map.html">주변 미용실 검색</a></li>
             </ul>
         </nav>
     </header>
-    <hr style="margin-bottom: 30px;">
+    <hr style="margin-bottom: 30px" />
     <h1>주변 미용실 검색</h1>
 
     <div class="container">
         <div id="statusMessage" class="status">지도 및 위치 정보를 불러오는 중...</div>
         <div id="map"></div>
 
+        <div id="salonListContainer" class="salon-list-container" style="margin-top: 30px;">
+            <h2 style="text-align: left; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">주변 미용실 목록</h2>
+            <div id="salonList" class="salon-list">
+                <p>주변 미용실을 검색 중입니다...</p>
+            </div>
         </div>
+        </div>
+
+    <script src="map_script.js"></script>
 
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDu1a4yhDQt2CE9CZlNT7IRT2nlvXl9lg0&callback=initMap&libraries=places&language=ko">
     </script>
 
     <script src="map_script.js"></script>
+    <script src="common.js"></script>
 </body>
 </html>
