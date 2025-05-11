@@ -1,4 +1,4 @@
-const BACKEND_BASE_URL = 'http://127.0.0.1:5001'; // Flask 서버 주소 및 포트
+const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const resultsContainer = document.getElementById('results');

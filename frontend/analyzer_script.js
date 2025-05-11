@@ -10,7 +10,7 @@ const genderResult = document.getElementById('genderResult');
 const ANALYZER_MAX_IMAGE_WIDTH = 2000;  // 얼굴 분석 API의 권장 최대 가로 크기
 const ANALYZER_MAX_IMAGE_HEIGHT = 2000; // 얼굴 분석 API의 권장 최대 세로 크기
 
-const BACKEND_BASE_URL = 'http://127.0.0.1:5001'; // Flask 서버 주소 및 포트
+const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
 
 // 백엔드의 새 API 엔드포인트 URL
 const BACKEND_API_URL = `${BACKEND_BASE_URL}/api/analyze-face`; // 백엔드 주소 확인!

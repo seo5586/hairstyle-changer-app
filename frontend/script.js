@@ -11,7 +11,7 @@ const MAX_IMAGE_WIDTH = 1500;
 const MAX_IMAGE_HEIGHT = 1500;
 
 // 백엔드 API 엔드포인트 URL 
-const BACKEND_BASE_URL = 'http://127.0.0.1:5001'; // Flask 서버 주소 (백엔드 서버 주소 및 포트에 맞게 수정)
+const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 (백엔드 서버 주소 및 포트에 맞게 수정)
 const TRANSFORM_API_URL = `${BACKEND_BASE_URL}/api/transform-hairstyle`; // 기존 변환 API URL 수정
 const HAIRSTYLE_INFO_API_URL = `${BACKEND_BASE_URL}/api/hairstyle-info`; // 새 미리보기 정보 API URL
 

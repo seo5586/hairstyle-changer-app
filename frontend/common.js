@@ -1,7 +1,7 @@
-// frontend/common.js
+//  frontend/common.js
 
 if (typeof BACKEND_BASE_URL === 'undefined') {
-    const BACKEND_BASE_URL = 'http://127.0.0.1:5001';
+    const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com';
 }
 
 /* ================== Intro Popup Logic ================== */

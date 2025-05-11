@@ -5,7 +5,7 @@ const statusMessage = document.getElementById('statusMessage');
 const salonListContainer = document.getElementById('salonList');
 let markers = {}; // 마커들을 place_id 기준으로 저장할 객체
 let nearbySearchResults = []; // nearbySearch 결과 저장
-const BACKEND_BASE_URL = 'http://127.0.0.1:5001'; // Flask 서버 주소
+const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소
 
 // Google Maps API 로드 완료 후 호출될 초기화 함수
 function initMap() {
