@@ -359,7 +359,6 @@ button:disabled {
   letter-spacing: 2px;
   color: white;
   text-align: center;
-  margin: 0 auto; /* 좌우 여백 auto로 가운데 정렬 */
   flex-grow: 1; /* 남는 공간 차지 (홈 버튼 제외하고 중앙에 오도록) */
 }
 

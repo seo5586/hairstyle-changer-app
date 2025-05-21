@@ -271,9 +271,9 @@ function updateListItem(details) {
             if (details.opening_hours.weekday_text) {
                 hoursHtml = `<div class="salon-hours"><strong>영업 시간:</strong><br>${details.opening_hours.weekday_text.join('<br>')}</div>`;
             }
-            if (details.opening_hours.open_now !== undefined) {
-                const isOpen = details.opening_hours.open_now;
-                statusHtml = `<p><span class="salon-status ${isOpen ? 'open' : 'closed'}">${isOpen ? '영업 중' : '영업 종료'}</span></p>`;
+            const isOpenNow = details.opening_hours.isOpen();
+            if (isOpenNow !== undefined) { // true 또는 false인 경우에만 처리
+                statusHtml = `<p><span class="salon-status ${isOpenNow ? 'open' : 'closed'}">${isOpenNow ? '영업 중' : '영업 종료'}</span></p>`;
             }
         }
         detailsHtml += statusHtml;
@@ -295,8 +295,12 @@ function updateMarkerInfoWindow(details) {
     if (details.formatted_address) content += `<br>${details.formatted_address}`;
     if (details.formatted_phone_number) content += `<br>📞 <a href="tel:${details.formatted_phone_number}">${details.formatted_phone_number}</a>`;
     if (details.rating) content += `<br>★ ${details.rating.toFixed(1)}`;
-    if (details.opening_hours && details.opening_hours.open_now !== undefined) {
-         content += `<br><span class="salon-status ${details.opening_hours.open_now ? 'open' : 'closed'}">${details.opening_hours.open_now ? '영업 중' : '영업 종료'}</span>`;
+    if (details.opening_hours) { // opening_hours 객체가 있는지 먼저 확인
+        const isOpenNow = details.opening_hours.isOpen();
+        if (isOpenNow !== undefined) { // true 또는 false인 경우에만 처리
+            content += `<br><span class="salon-status ${isOpenNow ? 'open' : 'closed'}">${isOpenNow ? '영업 중' : '영업 종료'}</span>`;
+        }
+        // 영업 상태 정보가 undefined이면 정보창에는 아무것도 추가하지 않음 (또는 "정보 없음" 추가 가능)
     }
 
     marker.infoWindowContent = content; // 마커에 정보 저장
