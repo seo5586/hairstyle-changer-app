@@ -329,7 +329,9 @@ button:disabled {
 .header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 로고와 홈 버튼 양쪽 정렬 */
+  justify-content: space-between; /* 홈 버튼과 인증 버튼을 양쪽 끝으로 */
+  position: relative; /* 자식 요소의 absolute 위치 기준점 */
+  height: 60px;
 }
 
 .home-button {
@@ -359,7 +361,17 @@ button:disabled {
   letter-spacing: 2px;
   color: white;
   text-align: center;
-  flex-grow: 1; /* 남는 공간 차지 (홈 버튼 제외하고 중앙에 오도록) */
+  /* ▼▼▼ 절대 위치 지정으로 변경 ▼▼▼ */
+  position: absolute;
+  left: 50%;
+  top: 50%; /* 헤더 세로 중앙에도 맞추기 위함 */
+  transform: translate(-50%, -116%); /* 요소 자체의 크기를 고려하여 정확히 중앙으로 이동 */
+  /* flex-grow: 1; */ /* 더 이상 flex 아이템으로 공간을 차지하지 않으므로 삭제 또는 주석 처리 */
+  /* ▲▲▲ 변경 끝 ▲▲▲ */
+  line-height: 1;
+
+  /* 로고가 너무 길어서 양쪽 버튼과 겹치는 것을 방지하기 위해 최대 너비 설정 가능 (선택 사항) */
+  /* max-width: 60%; */
 }
 
 .logo .hair { /* 로고 내 HAIR 부분 색상 */
@@ -632,9 +644,11 @@ body.popup-open {
 
 /* 헤더 내 인증 버튼 컨테이너 */
 .auth-button-container {
-    /* header-inner가 flex이므로, 이 버튼을 오른쪽 끝으로 보내기 위해 */
-    /* 로고에 flex-grow: 1, margin: 0 auto가 있으므로 이 컨테이너는 자연스럽게 오른쪽에 배치될 수 있음 */
-    /* 필요하다면 header-inner의 justify-content를 space-between으로 하고 로고의 margin auto를 제거 */
+  display: flex; /* 내부 버튼 정렬을 위해 */
+  justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+  min-width: 150px; /* 최소 너비 지정 (예: '로그아웃 (긴이메일주소)' 길이에 맞춰 조절) */
+  /* 필요하다면 고정 너비 width: 150px; 로 설정할 수도 있습니다. */
+  flex-shrink: 0; /* 컨테이너가 줄어들지 않도록 */
 }
 
 /* 헤더 내 로그인/로그아웃 버튼 */
