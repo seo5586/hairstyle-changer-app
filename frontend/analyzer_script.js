@@ -10,10 +10,12 @@ const genderResult = document.getElementById('genderResult');
 const ANALYZER_MAX_IMAGE_WIDTH = 2000;  // 얼굴 분석 API의 권장 최대 가로 크기
 const ANALYZER_MAX_IMAGE_HEIGHT = 2000; // 얼굴 분석 API의 권장 최대 세로 크기
 
-const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//common.js에 선언했음
+//const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//const BACKEND_BASE_URL = 'http://127.0.0.1:5001';
 
 // 백엔드의 새 API 엔드포인트 URL
-const BACKEND_API_URL = `${BACKEND_BASE_URL}/api/analyze-face`; // 백엔드 주소 확인!
+const BACKEND_API_URL = `${window.BACKEND_BASE_URL}/api/analyze-face`; // 백엔드 주소 확인!
 
 // 이미지 미리보기 기능 (이전과 동일)
 imageUpload.addEventListener('change', function(event) {
@@ -126,10 +128,10 @@ analyzeButton.addEventListener('click', async () => {
                     img.alt = style.name;
 
                     const imageUrlFromAPI = style.image_url; // 예: "/static/images/some.jpg"
-                    const placeholderFullUrl = `${BACKEND_BASE_URL}/static/images/placeholder.jpg`;
+                    const placeholderFullUrl = `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`;
 
                     if (imageUrlFromAPI && typeof imageUrlFromAPI === 'string' && imageUrlFromAPI.startsWith('/static/')) {
-                        img.src = `${BACKEND_BASE_URL}${imageUrlFromAPI}`;
+                        img.src = `${window.BACKEND_BASE_URL}${imageUrlFromAPI}`;
                     } else {
                         console.warn(`잘못된 이미지 URL ("${imageUrlFromAPI}") 또는 URL 없음. Placeholder를 사용합니다.`);
                         img.src = placeholderFullUrl;

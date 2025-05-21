@@ -1,4 +1,6 @@
-const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//common.js에 선언했음
+//const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//const BACKEND_BASE_URL = 'http://127.0.0.1:5001';
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const resultsContainer = document.getElementById('results');
@@ -15,7 +17,7 @@ async function performSearch() {
 
     try {
         // fetch URL을 절대 경로로 수정
-        const response = await fetch(`${BACKEND_BASE_URL}/api/search-hairstyles?q=${encodeURIComponent(query)}`); 
+        const response = await fetch(`${window.BACKEND_BASE_URL}/api/search-hairstyles?q=${encodeURIComponent(query)}`); 
 
         if (!response.ok) {
             // 오류 처리를 위해 응답 내용을 확인하려 시도
@@ -96,11 +98,11 @@ function displayResults(results) {
         // DB에서 받은 image_url (상대 경로) 앞에 백엔드 주소를 붙여 절대 URL 생성
         // DB 값이 null이거나 없을 경우 placeholder 절대 URL 사용
         const imageUrlFromDB = style.image_url;
-        const placeholderUrl = `${BACKEND_BASE_URL}/static/images/placeholder.jpg`;
+        const placeholderUrl = `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`;
 
         // DB URL이 유효한 경우 (null 아니고 /static/으로 시작 가정) 전체 URL 생성, 아니면 placeholder URL 사용
         img.src = (imageUrlFromDB && imageUrlFromDB.startsWith('/static/'))
-                    ? `${BACKEND_BASE_URL}${imageUrlFromDB}`
+                    ? `${window.BACKEND_BASE_URL}${imageUrlFromDB}`
                     : placeholderUrl;        
 
         img.onerror = () => {

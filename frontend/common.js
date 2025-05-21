@@ -1,8 +1,9 @@
 //  frontend/common.js
 
-if (typeof BACKEND_BASE_URL === 'undefined') {
-    const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com';
-}
+//const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com';
+//const BACKEND_BASE_URL = 'http://127.0.0.1:5001'; // 로컬 개발용
+window.BACKEND_BASE_URL = 'http://127.0.0.1:5001'; 
+window.FRONTEND_URL = "http://127.0.0.1:5500/frontend";
 
 /* ================== Intro Popup Logic ================== */
 // (참고: 이 함수들은 index.html 에만 있는 #introPopup 요소를 찾아서 동작하므로,

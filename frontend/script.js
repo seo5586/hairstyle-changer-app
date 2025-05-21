@@ -11,9 +11,11 @@ const MAX_IMAGE_WIDTH = 1500;
 const MAX_IMAGE_HEIGHT = 1500;
 
 // 백엔드 API 엔드포인트 URL 
-const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 (백엔드 서버 주소 및 포트에 맞게 수정)
-const TRANSFORM_API_URL = `${BACKEND_BASE_URL}/api/transform-hairstyle`; // 기존 변환 API URL 수정
-const HAIRSTYLE_INFO_API_URL = `${BACKEND_BASE_URL}/api/hairstyle-info`; // 새 미리보기 정보 API URL
+//common.js에 선언했음
+//const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//const BACKEND_BASE_URL = 'http://127.0.0.1:5001';
+const TRANSFORM_API_URL = `${window.BACKEND_BASE_URL}/api/transform-hairstyle`; // 기존 변환 API URL 수정
+const HAIRSTYLE_INFO_API_URL = `${window.BACKEND_BASE_URL}/api/hairstyle-info`; // 새 미리보기 정보 API URL
 
 // (선택사항) 보안을 위해 API 키를 프론트엔드에서 직접 관리하지 않고,
 // 백엔드에서 환경 변수로 관리하는 것이 좋습니다.
@@ -184,12 +186,12 @@ hairStyleSelect.addEventListener('change', async function() {
         // 미리보기 HTML 생성 (이미지 왼쪽, 이름/설명 오른쪽)
         // 이미지 URL은 백엔드에서 /static/... 형태로 오므로, BACKEND_BASE_URL을 붙여야 함
         const imageUrl = data.image_url && data.image_url.startsWith('/static/')
-                            ? `${BACKEND_BASE_URL}${data.image_url}`
-                            : `${BACKEND_BASE_URL}/static/images/placeholder.jpg`; // 기본 placeholder
+                            ? `${window.BACKEND_BASE_URL}${data.image_url}`
+                            : `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`; // 기본 placeholder
 
         hairstylePreviewArea.innerHTML = `
             <div class="preview-content">
-                <img src="${imageUrl}" alt="${data.name || '헤어스타일'}" class="preview-image" onerror="this.onerror=null; this.src='${BACKEND_BASE_URL}/static/images/placeholder.jpg';">
+                <img src="${imageUrl}" alt="${data.name || '헤어스타일'}" class="preview-image" onerror="this.onerror=null; this.src='${window.BACKEND_BASE_URL}/static/images/placeholder.jpg';">
                 <div class="preview-info">
                     <h4 class="preview-name">${data.name || '이름 없음'}</h4>
                     <p class="preview-description">${data.description || '설명 없음'}</p>

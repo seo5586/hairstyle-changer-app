@@ -5,8 +5,9 @@ const statusMessage = document.getElementById('statusMessage');
 const salonListContainer = document.getElementById('salonList');
 let markers = {}; // 마커들을 place_id 기준으로 저장할 객체
 let nearbySearchResults = []; // nearbySearch 결과 저장
-const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소
-
+//common.js에 선언했음
+//const BACKEND_BASE_URL = 'https://hairstyle-changer.onrender.com'; // Flask 서버 주소 및 포트
+//const BACKEND_BASE_URL = 'http://127.0.0.1:5001';
 // Google Maps API 로드 완료 후 호출될 초기화 함수
 function initMap() {
     setStatus('현재 위치를 찾는 중...', 'processing');
@@ -127,11 +128,11 @@ function displaySalonList(results) {
         const photoImg = document.createElement('img');
         photoImg.classList.add('salon-photo'); // CSS 클래스 적용
         // 초기에는 placeholder 이미지, 상세 정보 로드 시 실제 이미지로 변경됨
-        photoImg.src = `${BACKEND_BASE_URL}/static/images/placeholder.jpg`;
+        photoImg.src = `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`;
         photoImg.alt = `${place.name || '미용실'} 사진`;
         photoImg.onerror = () => { // placeholder도 실패할 경우 대비
-            if (photoImg.src !== `${BACKEND_BASE_URL}/static/images/placeholder.jpg`) {
-                 photoImg.src = `${BACKEND_BASE_URL}/static/images/placeholder.jpg`;
+            if (photoImg.src !== `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`) {
+                 photoImg.src = `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`;
             }
             photoImg.style.backgroundColor='#e0e0e0'; // onerror 시 배경색
         };
@@ -243,7 +244,7 @@ function updateListItem(details) {
             photoImg.src = details.photos[0].getUrl({'maxWidth': 200, 'maxHeight': 200}); // 고화질 요청
             photoImg.alt = `${details.name || '미용실'} 사진`;
         } else {
-            photoImg.src = `${BACKEND_BASE_URL}/static/images/placeholder.jpg`; // 사진 없으면 placeholder
+            photoImg.src = `${window.BACKEND_BASE_URL}/static/images/placeholder.jpg`; // 사진 없으면 placeholder
             photoImg.alt = '미용실 사진 없음';
         }
         // onerror는 displaySalonList에서 이미 설정됨

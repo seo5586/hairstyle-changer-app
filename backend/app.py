@@ -7,6 +7,7 @@ from authlib.integrations.flask_client import OAuth
 from datetime import datetime, timezone
 from flask_cors import CORS
 from dotenv import load_dotenv
+from pathlib import Path
 from PIL import Image # Pillow 라이브러리 import
 import io # 이미지 데이터를 메모리에서 다루기 위해 import
 # === extensions.py 에서 db, migrate 가져오기 ===
@@ -15,9 +16,16 @@ from models import Hairstyle, User
 from sqlalchemy import func
 
 
-load_dotenv() # .env 파일 로드
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path, override=True)
+print("[DEBUG] FRONTEND_URL resolved to:", os.getenv('FRONTEND_URL'))
 
 app = Flask(__name__)
+
+#세션 쿠키 설정을 추가합니다
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # 크로스 사이트 요청에서도 쿠키 전송 허용
+app.config['SESSION_COOKIE_SECURE'] = True     # SameSite='None'일 경우 HTTPS를 통해서만 쿠키 전송 (필수)
+
 # 기존 로컬 개발용 주소와 함께, 배포된 프론트엔드의 정확한 URL을 추가합니다.
 frontend_deployed_url = "https://hairstyle-changer-app.onrender.com" # 사용자님의 프론트엔드 Render URL
 allowed_origins = [
@@ -29,6 +37,7 @@ allowed_origins = [
 #CORS(app) # 개발 환경에서 CORS 허용
 # 명시적으로 프론트엔드 출처를 지정하고, 자격 증명(쿠키) 허용
 CORS(app, supports_credentials=True, origins=allowed_origins)
+#CORS(app, supports_credentials=True, origins=['http://127.0.0.1:5500', 'http://localhost:5500'])
 
 # === DB 설정 ===
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5432/defaultdb')
@@ -349,6 +358,7 @@ def analyze_face():
         traceback.print_exc()
         return jsonify({"error": f"서버 내부 오류 발생: {e}"}), 500
 
+#헤어스타일 번환
 @app.route('/api/transform-hairstyle', methods=['POST'])
 def transform_hairstyle():
     if 'image' not in request.files:
@@ -421,6 +431,29 @@ def transform_hairstyle():
     except Exception as e:
         print(f"서버 내부 오류: {e}")
         return jsonify({"error": f"서버 내부 오류 발생: {e}"}), 500
+
+# 헤어스타일 미리보기
+@app.route('/api/hairstyle-info')
+def hairstyle_info():
+    style_value = request.args.get('value')
+    if not style_value:
+        return jsonify({'error': '헤어스타일 값이 전달되지 않았습니다.'}), 400
+
+    # API value → 한글 이름으로 매핑
+    korean_name = hairstyle_name_map.get(style_value)
+    if not korean_name:
+        return jsonify({'error': f'알 수 없는 스타일: {style_value}'}), 404
+
+    # DB에서 name으로 검색
+    style = Hairstyle.query.filter_by(name=korean_name).first()
+    if not style:
+        return jsonify({'error': f'{korean_name} 스타일을 찾을 수 없습니다.'}), 404
+
+    return jsonify({
+        'name': style.name,
+        'description': style.description,
+        'image_url': style.image_url
+    })
 
 # === 새로운 헤어스타일 검색 API 라우트 ===
 @app.route('/api/search-hairstyles', methods=['GET'])
@@ -566,6 +599,7 @@ def authorized_google():
 
         # 로그인 성공 후 프론트엔드의 메인 페이지(또는 이전에 있던 페이지)로 리다이렉트
         frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500') # Live Server 포트
+        print(f"[DEBUG] FRONTEND_URL resolved to: {frontend_url}")
         return redirect(f"{frontend_url}/index.html") # 예시: index.html로 리다이렉트
 
     except Exception as e:
@@ -582,6 +616,7 @@ def authorized_google():
 def logout():
     session.pop('user', None) # 세션에서 사용자 정보 제거
     frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
+    print(f"[DEBUG] FRONTEND_URL resolved to: {frontend_url}")
     return redirect(f"{frontend_url}/index.html") # 로그아웃 후 메인 페이지로
 
 #현재 로그인 상태 확인 API (프론트엔드용
