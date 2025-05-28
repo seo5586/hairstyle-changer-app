@@ -719,3 +719,20 @@ body.popup-open {
 .modal-close-button:hover {
     background-color: #5a6268;
 }
+
+.upload-disclaimer {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 15px; /* 다른 요소와의 간격 확보 */
+    text-align: center;
+}
+
+.guidance-text {
+    font-size: 0.85em;
+    color: #007bff; /* 예시: 파란색 안내 문구 */
+    margin-top: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-style: italic; /* 약간 기울임 (선택 사항) */
+}

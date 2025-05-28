@@ -337,12 +337,23 @@ function clearMarkers() {
 
 // 위치 정보 오류 처리 함수
 function handleLocationError(browserHasGeolocation) {
-    const errorMessage = browserHasGeolocation
+    let errorMessage = "";
+    const baseMessage = browserHasGeolocation
         ? "위치 정보 접근 권한이 없거나 현재 위치를 찾을 수 없습니다. 기본 위치로 지도를 표시합니다."
         : "오류: 사용 중인 브라우저가 위치 정보 기능을 지원하지 않습니다.";
 
+    errorMessage = `
+        <p>${baseMessage}</p>
+        <p style="font-size:0.9em; margin-top:10px;"><strong>다음 사항을 확인해 보세요:</strong></p>
+        <ul style="font-size:0.85em; text-align:left; margin-left:20px; margin-top:5px;">
+            <li>웹 브라우저의 현재 사이트 위치 정보 접근 권한이 '허용'으로 되어 있는지 확인해주세요. </li>
+            <li>모바일 기기의 전체 위치 서비스(GPS) 기능이 켜져 있는지 확인해주세요. (설정 > 위치)</li>
+        </ul>
+        <p style="font-size:0.9em; margin-top:10px;">위 설정을 변경한 후 페이지를 새로고침하여 다시 시도해 주세요. 현재는 기본 위치(서울 시청)로 지도를 표시합니다.</p>
+    `;
+
     setStatus(errorMessage, 'error');
-    console.error(errorMessage);
+    console.error(baseMessage); // 콘솔에는 기본 메시지만 출력
 
     // 기본 위치 설정 (예: 서울 시청) 및 지도 표시
     const defaultLocation = { lat: 37.5665, lng: 126.9780 };
@@ -352,14 +363,15 @@ function handleLocationError(browserHasGeolocation) {
     });
     //목록 초기화
     if (salonListContainer) {
-        salonListContainer.innerHTML = '<p>기본 위치(서울 시청) 기준으로 표시합니다. 위치 권한을 확인해주세요.</p>';
+        //salonListContainer.innerHTML = '<p>기본 위치(서울 시청) 기준으로 표시합니다. 위치 권한을 확인해주세요.</p>';
+        //위 상세 errorMessage가 setStatus를 통해 이미 표시될 것이므로, setStatus와 통합
     }
     clearMarkers();
 }
 
 // 상태 메시지 업데이트 함수
 function setStatus(message, type) {
-    statusMessage.textContent = message;
+    statusMessage.innerHTML = message;
     statusMessage.className = `status ${type}`;
 }
 
