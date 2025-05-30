@@ -417,14 +417,30 @@ def transform_hairstyle():
             return jsonify({"error": "API 응답에서 task_id를 찾을 수 없습니다."}), 500
 
         # --- 결과 폴링 (Polling) ---
-        # task_id를 poll_for_result 함수로 전달 (함수 내부에서 job_id 파라미터로 사용)
-        result_image_url = poll_for_result(task_id, api_key_from_header)
+        polling_result = poll_for_result(task_id, api_key_from_header) # api_key_from_header 또는 API_KEY
 
-        if result_image_url:
-            return jsonify({"result_image_url": result_image_url})
+        if polling_result.get("error"):
+            # 폴링 중 오류 발생 시, AILab에서 받은 상세 메시지 사용
+            error_message = polling_result.get("message", "작업 결과를 가져오는 중 알 수 없는 오류가 발생했습니다.")
+            # AILab에서 HTTP 상태 코드를 주면 그것을 사용, 아니면 기본값 400 또는 500
+            status_code = polling_result.get("status_code")
+            # AILab의 내부 error_code (422 등)와 HTTP 상태 코드를 구분해야 할 수 있음
+            # 여기서는 AILab이 422 오류를 HTTP 422로 반환한다고 가정하고,
+            # 그 외 AILab 내부 error_code는 HTTP 400으로 매핑
+            http_status_code = 400 # 기본 클라이언트 오류
+            if isinstance(status_code, int):
+                if 400 <= status_code < 600 : # HTTP 상태 코드 범위라면 그대로 사용
+                    http_status_code = status_code
+                # 그 외 AILab 내부 오류 코드는 400으로 처리하거나 필요시 더 세분화
+            
+            return jsonify({"error": error_message}), http_status_code
+        
+        elif polling_result.get("url"):
+            return jsonify({"result_image_url": polling_result.get("url")})
         else:
-            return jsonify({"error": "작업 결과를 가져오는 데 실패했거나 시간이 초과되었습니다."}), 500
-
+            # 이 경우는 poll_for_result가 {"error": False, "url": None} 등을 반환하는 예외적 상황
+            return jsonify({"error": "알 수 없는 이유로 작업 결과를 가져오지 못했습니다."}), 500
+    
     except requests.exceptions.RequestException as e:
         print(f"API 요청 오류: {e}")
         return jsonify({"error": f"API 요청 중 오류 발생: {e}"}), 500
@@ -630,74 +646,86 @@ def auth_status():
 def poll_for_result(task_id, api_key):
     """주어진 task_id로 공통 비동기 작업 결과 API를 주기적으로 확인합니다."""
     headers = {'ailabapi-api-key': api_key}
-    params = {'task_id': task_id} # task_id를 파라미터로 사용
-
+    params = {'task_id': task_id}
     max_attempts = 20
-    wait_interval = 5 # 필요시 대기 시간 조절 가능
+    wait_interval = 5
 
     for attempt in range(max_attempts):
         try:
             print(f"결과 확인 시도 {attempt + 1}/{max_attempts} (Task ID: {task_id})")
-            response = requests.get(TASK_RESULT_URL, headers=headers, params=params, timeout=15) # 타임아웃 약간 늘림
-            response.raise_for_status() # 4xx, 5xx 오류 발생 시 예외 발생
+            response = requests.get(TASK_RESULT_URL, headers=headers, params=params, timeout=15)
+            
+            # HTTP 오류가 발생하면 여기서 바로 예외 처리로 넘어감 (예: 422)
+            response.raise_for_status() 
+            
             result_data = response.json()
             print(f"결과 확인 응답: {result_data}")
 
-            # API 자체 오류 코드 확인 (0이 아니면 실패)
+            # API 응답 내 error_code 확인 (AILab 자체 오류 코드)
             if result_data.get("error_code") != 0:
-                print(f"결과 확인 API 오류: {result_data.get('error_msg')}")
-                return None
+                error_msg = result_data.get('error_msg', 'AILab 작업 처리 중 오류가 발생했습니다.')
+                error_detail = result_data.get('error_detail', {})
+                # error_detail 안에 더 구체적인 메시지가 있을 수 있음
+                specific_message = error_detail.get('message') or error_detail.get('code_message') or error_msg
+                print(f"결과 확인 API 내부 오류: {specific_message}")
+                return {"error": True, "message": specific_message, "status_code": result_data.get("error_code")}
 
-            # 작업 상태 확인 (문서 기준: 0=대기, 1=처리중, 2=성공)
             task_status = result_data.get("task_status")
             print(f"작업 상태 코드: {task_status}")
 
-            if task_status == 2: # 상태 코드 2: 성공
+            if task_status == 2: # 성공
                 print("작업 성공! 결과 URL 추출 시도.")
-                # 결과 데이터 추출 (data 객체 -> images 배열 -> 첫번째 요소)
                 data_field = result_data.get("data")
                 if data_field:
                     images_list = data_field.get("images")
-                    # images 리스트가 존재하고, 비어있지 않은지 확인
                     if images_list and isinstance(images_list, list) and len(images_list) > 0:
-                        result_url = images_list[0]
-                        print(f"결과 이미지 URL 발견: {result_url}")
-                        return result_url # 성공적으로 URL 반환
+                        return {"error": False, "url": images_list[0]} # 성공 시 URL 반환
                     else:
-                        print("오류: 작업 상태는 성공(2)이나, 응답 내 data.images 목록이 비어있거나 형식이 다릅니다.")
-                        return None
+                        return {"error": True, "message": "작업은 성공했으나 결과 이미지 목록을 찾을 수 없습니다."}
                 else:
-                    print("오류: 작업 상태는 성공(2)이나, 응답 내 data 필드를 찾을 수 없습니다.")
-                    return None
-
-            elif task_status == 0 or task_status == 1: # 상태 코드 0 또는 1: 대기 또는 처리 중
+                    return {"error": True, "message": "작업은 성공했으나 결과 데이터 필드를 찾을 수 없습니다."}
+            elif task_status == 0 or task_status == 1: # 대기 또는 처리 중
                 print("작업 대기 또는 처리 중...")
-                time.sleep(wait_interval) # 잠시 대기 후 다시 시도
-
-            else: # 상태 코드가 0, 1, 2 가 아닌 경우 (실패 또는 알 수 없는 상태)
-                print(f"작업 실패 또는 알 수 없는 상태 코드: {task_status}")
-                return None # 실패로 간주하고 종료
+                time.sleep(wait_interval)
+            else: # 실패 또는 알 수 없는 상태
+                error_msg = result_data.get('error_msg', f'알 수 없는 작업 상태 코드: {task_status}')
+                error_detail = result_data.get('error_detail', {})
+                specific_message = error_detail.get('message') or error_detail.get('code_message') or error_msg
+                print(f"작업 실패 또는 알 수 없는 상태: {specific_message}")
+                return {"error": True, "message": specific_message, "status_code": task_status}
 
         except requests.exceptions.Timeout:
             print("결과 확인 API 타임아웃.")
-            # 타임아웃 시 계속 시도할 수도 있지만, 여기서는 일단 실패로 간주하거나 재시도 횟수를 늘릴 수 있음
-            # time.sleep(wait_interval) # 타임아웃 시 재시도 원하면 주석 해제
+            # 마지막 시도에서 타임아웃되면 아래의 max_attempts 초과로 넘어감
+            if attempt == max_attempts - 1:
+                 return {"error": True, "message": "결과 확인 시간 초과. 잠시 후 다시 시도해주세요."}
+            time.sleep(wait_interval) # 타임아웃 시 잠시 후 재시도
 
-        except requests.exceptions.RequestException as e:
-            error_response_text = ""
+        except requests.exceptions.RequestException as e: # HTTP 오류 (예: 422) 포함
+            error_response_text = "알 수 없는 API 요청 오류"
+            status_code_to_return = 500 # 기본 서버 오류 코드
             if e.response is not None:
-                try: error_response_text = e.response.text
-                except Exception: pass
+                status_code_to_return = e.response.status_code
+                try:
+                    error_json = e.response.json()
+                    print(f"AILab API 오류 응답 (JSON): {error_json}") # 전체 JSON 응답 로깅
+                    error_msg = error_json.get('error_msg', 'AILab API에서 오류가 반환되었습니다.')
+                    error_detail = error_json.get('error_detail', {})
+                    specific_message = error_detail.get('message') or error_detail.get('code_message') or error_msg
+                    error_response_text = specific_message
+                except ValueError: # JSON 파싱 실패 시
+                    error_response_text = e.response.text
             print(f"결과 확인 API 요청 오류: {e} 응답 내용: {error_response_text}")
-            return None # HTTP 오류 발생 시 종료
+            return {"error": True, "message": error_response_text, "status_code": status_code_to_return}
+        
         except Exception as e:
-            import traceback # 디버깅을 위해 traceback 추가
+            import traceback
             print(f"결과 확인 중 예상치 못한 내부 오류: {e}")
-            traceback.print_exc() # 오류 상세 내용 출력
-            return None # 예상 못한 오류 시 종료
+            traceback.print_exc()
+            return {"error": True, "message": "결과 확인 중 서버 내부 오류 발생"}
 
     print("최대 시도 횟수 초과. 결과 확인 실패.")
-    return None
+    return {"error": True, "message": "최대 시도 횟수 초과. 결과 확인에 실패했습니다."}
 
 if __name__ == '__main__':
     # 개발 서버 실행 (디버그 모드 활성화)

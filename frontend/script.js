@@ -122,32 +122,41 @@ transformButton.addEventListener('click', async () => {
         }
 
     } catch (error) {
-        console.error('상세 오류 (헤어스타일 변환):', error); // 디버깅용 상세 오류 출력
+        console.error('상세 오류 (헤어스타일 변환 또는 이미지 처리):', error);
 
-        let userMessage = "헤어스타일 변환 중 예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요."; // 기본 메시지
+        // error.message에는 백엔드를 통해 전달된 AILab의 구체적인 오류 메시지가 담겨 있습니다.
+        // 예: "얼굴은 정면 위치 에 있어야 합니다 . "
+        const ailabSpecificErrorMessage = error.message;
 
-        if (error.message) {
-            const msg = error.message.toLowerCase();
-            
+        let userFriendlyGuidance = ""; // 추가적인 사용자 친화적 안내 문구
+        const lowerAilabMsg = ailabSpecificErrorMessage.toLowerCase(); // 비교를 위해 소문자로 변경
 
-            if (msg.includes("파일 크기") || msg.includes("초과할 수 없습니다")) {
-                userMessage = "이미지 파일 크기가 너무 큽니다 (3MB 이하). 다른 파일을 선택해주세요.";
-            } else if (msg.includes("파일 형식") || msg.includes("허용되지 않는")) {
-                userMessage = "지원하지 않는 파일 형식입니다 (JPG, PNG). 다른 파일을 선택해주세요.";
-            } else if (msg.includes("api 오류") || msg.includes("task_id")) {
-                userMessage = "헤어스타일 변환 서비스에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
-            } else if (msg.includes("http 오류") || msg.includes("서버 응답 오류") || msg.includes("서버 내부 오류")) {
-                 userMessage = "서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-            } else if (msg.includes("failed to fetch")) { // 네트워크 연결 실패
-                 userMessage = "서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.";
-            } else if (msg.includes("결과를 받지 못했습니다") || msg.includes("시간이 초과")) {
-                 userMessage = "변환 결과를 가져오는 데 실패했습니다. 잠시 후 다시 시도하거나 다른 스타일/이미지를 사용해보세요.";
-            }
-            // 필요에 따라 다른 특정 오류 메시지에 대한 처리 추가 가능
+        // AILab 오류 메시지 내용에 따라 추가 안내 문구 설정
+        if (lowerAilabMsg.includes("얼굴은 정면 위치 에 있어야 합니다") || 
+            lowerAilabMsg.includes("face must be in a frontal position") ||
+            lowerAilabMsg.includes("얼굴이 앞 을 향하지 않습니다")) {
+            userFriendlyGuidance = "얼굴이 정면을 향하도록 사진을 다시 촬영해주세요. 얼굴이 너무 기울어지거나 옆모습은 인식하기 어려울 수 있습니다.";
+        } else if (lowerAilabMsg.includes("파일 내용이 요구 사항을 충족 하지 않습니다")) {
+            userFriendlyGuidance = "업로드하신 파일이 처리 요구사항을 충족하지 않는 것 같습니다. 얼굴이 선명하고 정면을 잘 바라보는지, 또는 너무 작거나 크지 않은지 확인해주세요.";
+        } else if (lowerAilabMsg.includes("시간 초과") || lowerAilabMsg.includes("timeout")) {
+            userFriendlyGuidance = "서버 응답 시간이 초과되었습니다. 네트워크 상태를 확인하고 잠시 후 다시 시도해주세요.";
+        }
+        // 여기에 다른 특정 AILab 오류 메시지 키워드에 대한 분기를 추가할 수 있습니다.
+        // 예: else if (lowerAilabMsg.includes("얼굴 영역은 전체 영역 의 10% 이상")) { ... }
+
+
+        let finalUserMessage;
+        if (userFriendlyGuidance) {
+            // AILab 메시지와 사용자 친화적 안내를 함께 표시
+            finalUserMessage = `${ailabSpecificErrorMessage} - ${userFriendlyGuidance}`;
+        } else {
+            // 특별한 추가 안내가 없으면, 백엔드에서 온 메시지만 표시 (앞에 "오류: " 추가)
+            finalUserMessage = `변환 오류: ${ailabSpecificErrorMessage}`;
         }
 
-        setStatus(userMessage, 'error');
+        setStatus(finalUserMessage, 'error');
 
+        // 결과 버튼이 있다면 숨김
         if(resultButtonsContainer) resultButtonsContainer.style.display = 'none';
 
     } finally {
