@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         if (isLoggedIn && userData) {
-            authButton.textContent = `로그아웃 (${userData.name || userData.email})`;
+            authButton.textContent = '로그아웃';
             authButton.dataset.isLoggedIn = 'true';
         } else {
             authButton.textContent = '로그인';
