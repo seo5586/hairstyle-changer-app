@@ -124,39 +124,24 @@ transformButton.addEventListener('click', async () => {
     } catch (error) {
         console.error('상세 오류 (헤어스타일 변환 또는 이미지 처리):', error);
 
-        // error.message에는 백엔드를 통해 전달된 AILab의 구체적인 오류 메시지가 담겨 있습니다.
-        // 예: "얼굴은 정면 위치 에 있어야 합니다 . "
-        const ailabSpecificErrorMessage = error.message;
+        // error.message에는 백엔드를 통해 전달된 AILab의 구체적인 오류 메시지(현재 영어)가 담겨 있습니다.
+        // 예: "The facial area must occupy at least 10% of the total area."
+        const ailabErrorMessage = error.message;
 
-        let userFriendlyGuidance = ""; // 추가적인 사용자 친화적 안내 문구
-        const lowerAilabMsg = ailabSpecificErrorMessage.toLowerCase(); // 비교를 위해 소문자로 변경
+        // 모든 오류 상황에 공통으로 추가될 한국어 안내 문구
+        const generalKoreanGuidance = "변환 결과를 가져오는 데 실패했습니다. 잠시 후 다시 시도하거나 다른 이미지를 사용해보세요.";
 
-        // AILab 오류 메시지 내용에 따라 추가 안내 문구 설정
-        if (lowerAilabMsg.includes("얼굴은 정면 위치 에 있어야 합니다") || 
-            lowerAilabMsg.includes("face must be in a frontal position") ||
-            lowerAilabMsg.includes("얼굴이 앞 을 향하지 않습니다")) {
-            userFriendlyGuidance = "얼굴이 정면을 향하도록 사진을 다시 촬영해주세요. 얼굴이 너무 기울어지거나 옆모습은 인식하기 어려울 수 있습니다.";
-        } else if (lowerAilabMsg.includes("파일 내용이 요구 사항을 충족 하지 않습니다")) {
-            userFriendlyGuidance = "업로드하신 파일이 처리 요구사항을 충족하지 않는 것 같습니다. 얼굴이 선명하고 정면을 잘 바라보는지, 또는 너무 작거나 크지 않은지 확인해주세요.";
-        } else if (lowerAilabMsg.includes("시간 초과") || lowerAilabMsg.includes("timeout")) {
-            userFriendlyGuidance = "서버 응답 시간이 초과되었습니다. 네트워크 상태를 확인하고 잠시 후 다시 시도해주세요.";
-        }
-        // 여기에 다른 특정 AILab 오류 메시지 키워드에 대한 분기를 추가할 수 있습니다.
-        // 예: else if (lowerAilabMsg.includes("얼굴 영역은 전체 영역 의 10% 이상")) { ... }
-
-
-        let finalUserMessage;
-        if (userFriendlyGuidance) {
-            // AILab 메시지와 사용자 친화적 안내를 함께 표시
-            finalUserMessage = `${ailabSpecificErrorMessage} - ${userFriendlyGuidance}`;
-        } else {
-            // 특별한 추가 안내가 없으면, 백엔드에서 온 메시지만 표시 (앞에 "오류: " 추가)
-            finalUserMessage = `변환 오류: ${ailabSpecificErrorMessage}`;
-        }
+        // 최종적으로 사용자에게 보여줄 메시지 조합
+        // AILab의 영어 메시지 + 고정된 한국어 안내
+        const finalUserMessage = `${ailabErrorMessage} - ${generalKoreanGuidance}`;
+        // 만약 줄바꿈을 원하시면: const finalUserMessage = `${ailabErrorMessage}<br>${generalKoreanGuidance}`;
+        // (이 경우 setStatus 함수가 innerHTML을 사용해야 합니다. 현재 setStatus는 textContent를 사용할 가능성이 높습니다.)
+        // 일단은 한 줄에 이어서 표시하는 것으로 하겠습니다.
 
         setStatus(finalUserMessage, 'error');
 
         // 결과 버튼이 있다면 숨김
+        const resultButtonsContainer = document.getElementById('resultButtonsContainer');
         if(resultButtonsContainer) resultButtonsContainer.style.display = 'none';
 
     } finally {
