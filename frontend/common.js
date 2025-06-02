@@ -130,10 +130,27 @@ async function resizeImageIfNeeded(file, maxWidth, maxHeight, statusCallback) { 
     });
 }
 
+//URL에서 토큰 처리
+function handleTokenFromUrlAndRedirect() {
+    if (window.location.hash.startsWith('#token=')) {
+        const token = window.location.hash.substring('#token='.length);
+        if (token) {
+            console.log('URL에서 토큰 발견, localStorage에 저장합니다.');
+            localStorage.setItem('jwtToken', token); // 토큰을 localStorage에 저장
+            // URL에서 토큰 정보 제거 (주소창 깔끔하게, 히스토리 추가 없이)
+            history.replaceState(null, null, window.location.pathname + window.location.search);
+            return true; // 토큰 처리 완료
+        }
+    }
+    return false; // 처리할 토큰 없음
+}
 
 //단일 DOMContentLoaded 리스너로 통합
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Common.js DOMContentLoaded event fired."); // 실행 확인용 로그
+
+    //페이지 로드 시 가장 먼저 URL에서 토큰 처리 시도
+    const justLoggedIn = handleTokenFromUrlAndRedirect();
 
     // 1. Intro Popup 관련 초기화
     checkPopupCookie();
@@ -190,22 +207,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function fetchAuthStatusAndUpdateButton() {
-        if (!authButtonContainer) { // 헤더의 버튼 컨테이너가 로드되었는지 확인
-            console.log("Auth button container not found yet for fetchAuthStatus.");
+        if (!authButtonContainer) {
+            console.log("Auth button container not found for fetchAuthStatus.");
             return;
         }
         try {
+            const token = localStorage.getItem('jwtToken'); // localStorage에서 토큰 가져오기
+            const headers = {
+                'Content-Type': 'application/json' // 일반적으로 API 요청 시 명시
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`; // 토큰이 있으면 Authorization 헤더 추가
+                console.log('Authorization 헤더에 토큰 포함하여 /api/auth/status 호출');
+            } else {
+                console.log('localStorage에 토큰 없음, /api/auth/status 호출 (토큰 없이)');
+            }
+
             const response = await fetch(`${BACKEND_BASE_URL}/api/auth/status`, {
-                method: 'GET', // 명시적으로 GET (선택 사항)
-                credentials: 'include' // 중요! 크로스 오리진 요청 시 쿠키를 포함하도록 함
+                method: 'GET',
+                headers: headers, // 수정된 헤더 사용
+                credentials: 'omit' // JWT 사용 시 쿠키는 필요 없으므로 'omit' 또는 생략 가능. 
+                                     // 'include'는 CORS 설정과 함께 쿠키 전송 시 사용.
+                                     // 지금은 토큰 기반이므로 'omit'으로 명확히 하거나,
+                                     // 서버 CORS 설정(supports_credentials=True)과 충돌하지 않도록
+                                     // 이전처럼 'include'를 유지해도 괜찮습니다. 여기서는 'omit' 시도.
+                                     // 만약 다른 쿠키 기반 기능이 있다면 'include' 유지.
+                                     // 안전하게 가려면 'include'로 두고 서버 설정에 의존.
+                                     // 여기서는 'include'로 다시 변경 (Authlib이 OAuth state에 세션 쿠키를 사용할 수 있으므로)
+                // credentials: 'include' // 이전 설정 유지 또는 필요에 따라 'omit'
             });
+
             if (!response.ok) {
-                console.error("Auth status check failed:", response.status);
+                console.error("Auth status check failed:", response.status, await response.text());
                 updateAuthButton(false, null);
+                if (response.status === 401) { // 토큰 만료 또는 무효로 인한 401 Unauthorized
+                    localStorage.removeItem('jwtToken'); // 잘못된 토큰 제거
+                    console.log("잘못된 토큰(401) 감지, localStorage에서 토큰 제거됨.");
+                }
                 return;
             }
             const data = await response.json();
-            console.log('/api/auth/status 응답 데이터:', data); // 로그 추가
+            console.log('/api/auth/status 응답 데이터 (common.js):', data);
             updateAuthButton(data.logged_in, data.user);
         } catch (error) {
             console.error("Error fetching auth status (common.js):", error);
@@ -213,29 +255,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 페이지 로드 시 또는 토큰 처리 직후에 로그인 상태 확인
+    fetchAuthStatusAndUpdateButton();
     // 페이지 로드 시 즉시 로그인 상태 확인 및 버튼 업데이트
-    if (authButton) { // authButton이 있을 때만 실행 (모든 페이지에 있을 것으로 예상)
-        fetchAuthStatusAndUpdateButton();
-    }
+    // if (authButton) { // authButton이 있을 때만 실행 (모든 페이지에 있을 것으로 예상)
+    //     fetchAuthStatusAndUpdateButton();
+    // }
 
 
     // 헤더의 로그인/로그아웃 버튼 클릭 이벤트
     if (authButton) {
         authButton.addEventListener('click', async () => {
             const isLoggedIn = authButton.dataset.isLoggedIn === 'true';
-            if (isLoggedIn) {
+            if (isLoggedIn) { // 로그아웃 버튼 클릭 시
                 if (confirm("로그아웃 하시겠습니까?")) {
-                       // 변경: 브라우저가 직접 /logout 경로로 이동하도록 합니다.
-                        window.location.href = `${BACKEND_BASE_URL}/logout`;
+                    localStorage.removeItem('jwtToken'); // localStorage에서 토큰 제거
+                    console.log('JWT 토큰이 localStorage에서 제거되었습니다.');
+                    updateAuthButton(false, null); // UI 즉시 업데이트
+                    // 백엔드 /logout은 세션 정리(이제 불필요) 및 리다이렉션만 하므로,
+                    // 클라이언트 측에서 토큰 제거 후 UI 업데이트하고, 필요시 메인으로 보내거나 새로고침.
+                    // 여기서는 간단히 새로고침하여 /api/auth/status 재호출 유도
+                    window.location.reload();
+                    // 또는 window.location.href = `${BACKEND_BASE_URL}/logout`; // 백엔드에 알리고 리다이렉트 따르기
                 }
-            } else {
-                // 로그인 처리: 로그인 모달 띄우기
-                if (loginModalOverlay) { // 모달 요소가 현재 페이지에 있는지 확인
+            } else { // 로그인 버튼 클릭 시
+                if (loginModalOverlay) {
                     loginModalOverlay.classList.remove('hidden');
                     document.body.classList.add('popup-open');
                 } else {
-                    // 로그인 모달이 없는 페이지에서 로그인 버튼 클릭 시 (예: analyzer.html)
-                    // 바로 Google 로그인으로 리다이렉트 (이전 결정 사항)
                     console.log("Login modal not found on this page, redirecting to Google login directly.");
                     window.location.href = `${BACKEND_BASE_URL}/login/google`;
                 }
