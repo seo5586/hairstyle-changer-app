@@ -2,9 +2,10 @@ import os
 import requests
 import time
 import uuid
+import jwt # PyJWT 라이브러리
 from flask import Flask, request, jsonify, send_from_directory, session, url_for, redirect
 from authlib.integrations.flask_client import OAuth
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 from dotenv import load_dotenv
 from pathlib import Path
@@ -52,6 +53,17 @@ migrate.init_app(app, db) # extensions에서 가져온 migrate 객체에 앱과 
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_flask_secret_key_for_dev_only') # .env 파일에서 로드, 없으면 기본값
 if app.secret_key == 'default_flask_secret_key_for_dev_only':
     print("경고: FLASK_SECRET_KEY가 기본값입니다. 프로덕션 환경에서는 반드시 변경하세요.")
+
+# JWT 시크릿 키 로드
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+if not JWT_SECRET_KEY:
+    print("치명적 오류: JWT_SECRET_KEY 환경 변수가 설정되지 않았습니다. 앱을 시작할 수 없습니다.")
+    # 실제 프로덕션에서는 여기서 앱 실행을 중단해야 합니다.
+    # 개발 중에는 기본값을 사용할 수 있지만, 보안상 매우 취약합니다.
+    JWT_SECRET_KEY = 'temp_jwt_secret_for_dev_use_only_!!!_CHANGE_ME_!!!' # << 개발용 임시값, 실제로는 .env에 설정
+    if JWT_SECRET_KEY == 'temp_jwt_secret_for_dev_use_only_!!!_CHANGE_ME_!!!':
+        print("경고: JWT_SECRET_KEY가 임시 기본값입니다. .env 파일에 강력한 키를 설정하세요.")
+
 
 oauth = OAuth(app) # OAuth 객체 초기화
 
@@ -603,15 +615,25 @@ def authorized_google():
         db.session.commit()
         print(f"사용자 정보 DB에 커밋 완료 (User ID: {user.id})")
 
-        # 세션에 사용자 정보 저장
-        session['user'] = {
-            'id': user.id, # 우리 DB의 사용자 ID
-            'google_id': user.google_id,
+        payload = {
+            'user_id': user.id, # 우리 DB의 사용자 ID
             'email': user.email,
             'name': user.name,
-            'profile_pic_url': user.profile_pic_url
+            'exp': datetime.now(timezone.utc) + timedelta(hours=1) # 토큰 만료 시간 (예: 1시간)
+            # 필요하다면 다른 정보(google_id, profile_pic_url 등)도 포함 가능
         }
-        print(f"세션에 저장된 사용자 정보: {session.get('user')}")
+        jwt_token = jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
+        print(f"JWT 발급됨 (User ID: {user.id}): {jwt_token[:20]}...") # 토큰 일부만 로깅
+
+        # 세션에 사용자 정보 저장
+        # session['user'] = {
+        #     'id': user.id, # 우리 DB의 사용자 ID
+        #     'google_id': user.google_id,
+        #     'email': user.email,
+        #     'name': user.name,
+        #     'profile_pic_url': user.profile_pic_url
+        # }
+        # print(f"세션에 저장된 사용자 정보: {session.get('user')}")
 
         # 로그인 성공 후 프론트엔드의 메인 페이지(또는 이전에 있던 페이지)로 리다이렉트
         frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500') # Live Server 포트
@@ -630,7 +652,7 @@ def authorized_google():
 #로그아웃 라우트
 @app.route('/logout')
 def logout():
-    session.pop('user', None) # 세션에서 사용자 정보 제거
+    #session.pop('user', None) # 세션에서 사용자 정보 제거
     frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
     print(f"[DEBUG] FRONTEND_URL resolved to: {frontend_url}")
     return redirect(f"{frontend_url}/index.html") # 로그아웃 후 메인 페이지로
@@ -638,10 +660,44 @@ def logout():
 #현재 로그인 상태 확인 API (프론트엔드용
 @app.route('/api/auth/status')
 def auth_status():
-    if 'user' in session:
-        return jsonify({"logged_in": True, "user": session['user']})
-    else:
-        return jsonify({"logged_in": False})
+    # session 대신 Authorization 헤더의 Bearer 토큰 확인
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"logged_in": False, "message": "인증 토큰이 없거나 형식이 잘못되었습니다."})
+
+    token = auth_header.split(" ")[1] # "Bearer " 다음의 토큰 부분 추출
+
+    try:
+        # 토큰 디코딩 및 검증
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get('user_id')
+
+        if not user_id:
+            return jsonify({"logged_in": False, "message": "토큰에 사용자 ID가 없습니다."})
+
+        # DB에서 사용자 정보 조회 (선택 사항: 매번 조회할지, 토큰 내용만 믿을지)
+        # 여기서는 DB 조회를 통해 최신 정보를 가져오고, 사용자 존재 여부도 확인
+        current_user = User.query.get(user_id)
+        if current_user:
+            # 프론트엔드에 전달할 사용자 정보 구성
+            user_data_for_frontend = {
+                'id': current_user.id,
+                'email': current_user.email,
+                'name': current_user.name,
+                'profile_pic_url': current_user.profile_pic_url
+                # 필요하다면 'credits': current_user.credits 등 추가
+            }
+            return jsonify({"logged_in": True, "user": user_data_for_frontend})
+        else:
+            return jsonify({"logged_in": False, "message": "사용자를 찾을 수 없습니다."})
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"logged_in": False, "message": "토큰이 만료되었습니다."})
+    except jwt.InvalidTokenError:
+        return jsonify({"logged_in": False, "message": "유효하지 않은 토큰입니다."})
+    except Exception as e:
+        print(f"Auth status error: {e}")
+        return jsonify({"logged_in": False, "message": "인증 상태 확인 중 오류 발생"}), 500
 
 def poll_for_result(task_id, api_key):
     """주어진 task_id로 공통 비동기 작업 결과 API를 주기적으로 확인합니다."""
