@@ -132,6 +132,9 @@ async function resizeImageIfNeeded(file, maxWidth, maxHeight, statusCallback) { 
 
 //URL에서 토큰 처리
 function handleTokenFromUrlAndRedirect() {
+
+    console.log('[handleTokenFromUrlAndRedirect] 함수 시작. 현재 해시:', window.location.hash);
+
     if (window.location.hash.startsWith('#token=')) {
         const token = window.location.hash.substring('#token='.length);
         if (token) {
@@ -139,9 +142,13 @@ function handleTokenFromUrlAndRedirect() {
             localStorage.setItem('jwtToken', token); // 토큰을 localStorage에 저장
             // URL에서 토큰 정보 제거 (주소창 깔끔하게, 히스토리 추가 없이)
             history.replaceState(null, null, window.location.pathname + window.location.search);
+            console.log('[handleTokenFromUrlAndRedirect] URL 해시 정리 시도함.');
             return true; // 토큰 처리 완료
+        } else {
+            console.log('[handleTokenFromUrlAndRedirect] #token= 접두사는 있지만 토큰 값이 비어있음.');
         }
     }
+    console.log('[handleTokenFromUrlAndRedirect] URL에서 #token= 접두사를 찾지 못했거나 해시가 없음.');
     return false; // 처리할 토큰 없음
 }
 
@@ -151,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //페이지 로드 시 가장 먼저 URL에서 토큰 처리 시도
     const justLoggedIn = handleTokenFromUrlAndRedirect();
+    console.log('[DOMContentLoaded] handleTokenFromUrlAndRedirect 실행 결과 (justLoggedIn):', justLoggedIn);
 
     // 1. Intro Popup 관련 초기화
     checkPopupCookie();
