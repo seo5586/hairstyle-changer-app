@@ -636,9 +636,11 @@ def authorized_google():
         # print(f"세션에 저장된 사용자 정보: {session.get('user')}")
 
         # 로그인 성공 후 프론트엔드의 메인 페이지(또는 이전에 있던 페이지)로 리다이렉트
-        frontend_url = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500') # Live Server 포트
-        print(f"[DEBUG] FRONTEND_URL resolved to: {frontend_url}")
-        return redirect(f"{frontend_url}/index.html") # 예시: index.html로 리다이렉트
+        frontend_url = os.getenv('FRONTEND_URL', 'https://hairstyle-changer-app.onrender.com') # Live Server 포트
+        redirect_target_url = f"{frontend_url}/index.html#token={jwt_token}"
+        print(f"프론트엔드로 리다이렉션 시도: {redirect_target_url}")
+
+        return redirect(redirect_target_url) # 예시: index.html로 리다이렉트
 
     except Exception as e:
         import traceback
